@@ -38,7 +38,9 @@ Move packages from an archive in to your reprepro style apt repository
             puts "  #{rule.package_name}"
             puts "    rule       - #{rule.restriction} #{rule.version}"
             puts "    included   - #{included}"
-            puts "    available  - #{available && available.versions.join(', ')}"
+            puts "    available  - #{available && available.join(', ')}"
+            next unless available
+            puts "    upgradable - #{rule.upgradeable?(included, available)}"
 
           end
         end
