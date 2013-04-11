@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'inifile'
 
 module AptControl
@@ -17,15 +18,48 @@ module AptControl
 
   class BuildArchive
 
+    attr_reader :packages
+
+    def initialize(dir)
+      @dir = dir
+      parse!
+    end
+
+    def [](name)
+      packages.find {|p| p.name == name }
+    end
+
+    def parse!
+      Dir.chdir(@dir) do
+        parsed_changes = Dir['*.changes'].map { |fname|
+          fname.split('_')[0...2]
+        }
+
+        package_names = parsed_changes.map(&:first).sort.uniq
+        @packages = package_names.map do |name|
+          versions = parsed_changes.select {|n, v | name == n }.map(&:last)
+          Package.new(name, versions)
+        end
+      end
+    end
+
     class Package
-      def versions ; end
+
+      attr_reader :name
+      attr_reader :versions
+
+      def initialize(name, versions)
+        @name = name
+        @versions = versions
+      end
       def changes_fname(version) ; end
 
-      def packages ; end
     end
   end
 
   class ControlFile
+
+    attr_reader :distributions
 
     def initialize(path)
       @inifile = IniFile.load(path)
@@ -34,7 +68,7 @@ module AptControl
 
     def dump
       @distributions.each do |d|
-        puts "#{d}"
+        puts "#{d.name}"
         d.package_rules.each do |pr|
           puts "  #{pr.package_name} #{pr.restriction} #{pr.version}"
         end
@@ -76,7 +110,6 @@ module AptControl
       attr_reader :package_rules
     end
 
-    def distributions ; end
   end
 
   class AptSite
@@ -87,8 +120,11 @@ module AptControl
     end
 
     def included_version(distribution_name, package_name)
-      `reprepro -b #{apt_site_dir}`
+      command = "reprepro -Tdsc -b #{@apt_site_dir} list #{distribution_name} #{package_name}"
+      output = exec(command, :name => 'reprepro')
+      output.split(' ').last
     end
+
     def include!(distribution_name, changes_fname) ; end
   end
 end
