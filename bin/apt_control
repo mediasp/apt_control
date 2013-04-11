@@ -1,0 +1,5 @@
+#! /usr/bin/env ruby
+
+require 'apt_control'
+require 'apt_control/cli'
+AptControl::CLI.main
