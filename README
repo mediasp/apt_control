@@ -1,0 +1,33 @@
+# apt-control - move packages in to your apt repository based on gemspec-esque version specifications
+
+Requirements:
+ - reprepro based apt site
+ - directory full of builds
+ - ruby1.8 and rubygems
+ - jabber server (for notifications)
+
+# install
+
+gem install apt-control-{some-version}.gem
+
+# using
+
+Get a dump of the state of your repository
+
+apt_control \
+ --apt-site-dir=/var/www/apt.site.com \
+ --control-file=/etc/apt.site.com/apt-control.ini \
+ --build-archive-dir=/var/www/apt.site.com/builds \
+ status
+
+
+Watch your build directory for new packages to arrive, moving them in to
+apt as they do
+
+apt_control \
+ --apt-site-dir=/var/www/apt.site.com \
+ --control-file=/etc/apt.site.com/apt-control.ini \
+ --build-archive-dir=/var/www/apt.site.com/builds \
+ --jabber-id=aptbot@jabber.server.com --jabber-password=hushhush \
+ --jabber-chatroom-id=notify@conference.jabber.server.com/aptbot \
+ watch
