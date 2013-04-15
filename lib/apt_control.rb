@@ -162,7 +162,6 @@ module AptControl
     class Package
 
       attr_reader :name
-      attr_reader :versions
 
       def initialize(name, versions)
         @name = name
@@ -171,6 +170,10 @@ module AptControl
 
       def add_version(version)
         @versions << version
+      end
+
+      def versions
+        @versions.sort
       end
 
       def changes_fname(version) ; end
