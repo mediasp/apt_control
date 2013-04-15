@@ -1,0 +1,7 @@
+ - daemon mode, get it running as a init.d controllable daemon
+ - debian packaging with private gem dir (let's ugprade to bundler-1.2)
+ - jabber bot can dump apt state
+ - build-archive will keep a lot in memory as archive gets big - not sure if a
+   problem or not, but could work off disk
+ - debian version segment is sorted alphabetically, but debian versions have
+   special sort ordering that I have completely ignored
