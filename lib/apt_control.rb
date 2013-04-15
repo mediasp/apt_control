@@ -140,10 +140,10 @@ module AptControl
           begin
             fname = File.basename(fname)
             name, version_string = parse_changes_fname(fname)
-            package = @packages.find {|p| p.name == name }
             version = Version.parse(version_string)
 
-            if package == nil
+            package = @packages.find {|p| p.name == name }
+            if package.nil?
               @packages << package = Package.new(name, [version])
             else
               package.add_version(version)
@@ -263,6 +263,11 @@ module AptControl
       end
       attr_reader :name
       attr_reader :package_rules
+
+      def [](package_name)
+        package_rules.find {|rule| rule.package_name == package_name }
+      end
+
     end
 
   end
@@ -281,12 +286,18 @@ module AptControl
     def included_version(distribution_name, package_name)
       command = "#{reprepro_cmd} -Tdsc list #{distribution_name} #{package_name}"
       output = exec(command, :name => 'reprepro')
-      Version.parse(output.split(' ').last)
+      version_string = output.split(' ').last
+      version_string && Version.parse(version_string)
     end
 
     def include!(distribution_name, changes_fname)
-      command = "#{reprepro_cmd} include #{distribution_name} #{changes_fname}"
-      exec(command, :name => 'reprepro')
+      command = "#{reprepro_cmd} --ignore=wrongdistribution include #{distribution_name} #{changes_fname}"
+      begin
+        exec(command, :name => 'reprepro')
+      rescue Exec::UnexpectedExitStatus => e
+        $stderr.puts("Error executing: #{e.command}")
+        $stderr.puts(e.stderr)
+      end
     end
   end
 end

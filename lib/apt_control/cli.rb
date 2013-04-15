@@ -21,6 +21,17 @@ module AptControl
       def build_archive ; ancestor(Root).build_archive ; end
       def notifier ; ancestor(Root).notify ; end
       def notify(msg) ; ancestor(Root).notify(msg) ; end
+
+      def each_package_state(&block)
+        control_file.distributions.each do |dist|
+          dist.package_rules.each do |rule|
+            included = apt_site.included_version(dist.name, rule.package_name)
+            available = build_archive[rule.package_name]
+
+            yield(dist, rule, included, available)
+          end
+        end
+      end
     end
 
     class Root < Climate::Command('apt_control')
@@ -63,10 +74,34 @@ Move packages from an archive in to your reprepro style apt repository
       subcommand_of Root
       description """Watch the build archive for new files to include"""
 
+      opt :noop, "Only pretend to do stuff to the apt archive"
+
       def run
         notify("Watching for new packages in #{build_archive.dir}")
         build_archive.watch do |package, new_version|
           notify("new package: #{package.name} at #{new_version}")
+
+          updated = control_file.distributions.map do |dist|
+            rule = dist[package.name] or next
+            included = apt_site.included_version(dist.name, package.name)
+
+            if rule.upgradeable?(included, [new_version])
+              if options[:noop]
+                notify("package #{package.name} can be upgraded to #{new_version} on #{dist.name} (noop)")
+              else
+                # FIXME error handling here, please
+                apt_site.include!(dist.name, build_archive.changes_fname(rule.package_name, new_version))
+                notify("package #{package.name} upgraded to #{new_version} on #{dist.name}")
+              end
+              dist.name
+            else
+              nil
+            end
+          end.compact
+
+          if updated.size == 0
+            notify("package #{package.name} could not be updated on any distributions")
+          end
         end
       end
     end
@@ -117,9 +152,8 @@ that the control file will allow"""
             puts "    rule       - #{rule.restriction} #{rule.version}"
             puts "    included   - #{included}"
             puts "    available  - #{available && available.join(', ')}"
-            puts "    satisfied  - #{rule.satisfied_by?(included)}"
-            next unless available
-            puts "    upgradable - #{rule.upgradeable?(included, available)}"
+            puts "    satisfied  - #{included && rule.satisfied_by?(included)}"
+            puts "    upgradable - #{available && rule.upgradeable?(included, available)}"
           end
         end
       end
