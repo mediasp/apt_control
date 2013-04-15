@@ -102,11 +102,13 @@ module AptControl
     end
 
     def changes_fname(package_name, version)
-      Dir.chdir(@dir) do
-        parsed_changes = Dir['*.changes'].find { |fname|
+      fname = Dir.chdir(@dir) do
+        parsed_changes = Dir["#{package_name}_#{version}_*.changes"].find { |fname|
           parse_changes_fname(fname)
         }
       end
+
+      fname && File.expand_path(File.join(@dir, fname))
     end
 
     def parse!
