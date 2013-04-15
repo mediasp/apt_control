@@ -17,8 +17,11 @@ Gem::Specification.new do |s|
   s.add_dependency "popen4"
   s.add_dependency "climate"
   s.add_dependency "inifile"
+  s.add_dependency "xmpp4r"
+  s.add_dependency "listen"
 
   s.add_development_dependency "rspec"
+  s.add_development_dependency "minitest"
 
   s.files        = Dir.glob("{bin,lib}/**/*")
   s.executables  = ['apt_control']

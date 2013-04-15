@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 require 'inifile'
+require 'listen'
 
 module AptControl
   # - scan the contents of the build-archive
@@ -8,6 +9,7 @@ module AptControl
   #   - current version
 
   require 'apt_control/exec'
+  require 'apt_control/notify'
 
   class Version
     include Comparable
@@ -15,14 +17,14 @@ module AptControl
     attr_reader :major, :minor, :bugfix, :debian
 
     def self.parse(string)
-      match = /([0-9]+)\.([0-9]+)\.([0-9]+)-(.+)/.match(string)
-      match && new(*(1..4).map { |i| match[i] })
+      match = /([0-9]+)(?:\.([0-9]+))?(?:\.([0-9]+))?(?:-(.+))?/.match(string)
+      match && new(*(1..4).map { |i| match[i] }) or raise "could not parse #{string}"
     end
 
     def initialize(major, minor, bugfix, debian)
-      @major = major.to_i
-      @minor = minor.to_i
-      @bugfix = bugfix.to_i
+      @major = major && major.to_i
+      @minor = minor && minor.to_i
+      @bugfix = bugfix && bugfix.to_i
       @debian = debian
     end
 
@@ -42,11 +44,41 @@ module AptControl
       self.to_a[0...3] == rhs.to_a[0...3]
     end
 
+    # = operator
+    # returns true if this version satisfies the given rule and version spec,
+    # where all parts of the version given match our parts.  Not commutative,
+    # as  1.3.1.4 satisfies 1.3, but 1.3 does not satisfy 1.3.1.4
+    def satisfies_exactly(rhs)
+      rhs.to_a.compact.zip(self.to_a).each do |rhs_part, lhs_part|
+        return false unless rhs_part == lhs_part
+      end
+      return true
+    end
+
+    # >= operator
+    # returns true if this version is greater than or equal to the given version
+    def satisfies_loosely(rhs)
+      return true if satisfies_exactly(rhs)
+      return true if (self.to_a.compact <=> rhs.to_a.compact) >= 0
+      return false
+    end
+
+    # ~> operator
+    def satisfies_pessimisticly(rhs)
+
+      return false unless self.to_a[0...2] == rhs.to_a[0...2]
+
+      lhs_half = self.to_a[2..-1]
+      rhs_half = rhs.to_a[2..-1]
+
+      (lhs_half.compact <=> rhs_half.compact) >= 0
+    end
+
     def to_s
       [
         "#{major}.#{minor}",
-        bugfix >= 0 ? ".#{bugfix}" : nil,
-        debian.to_s != '-1' ? "-#{debian}" : nil
+        bugfix && ".#{bugfix}",
+        debian && "-#{debian}"
       ].compact.join
     end
   end
@@ -57,9 +89,10 @@ module AptControl
   class BuildArchive
 
     attr_reader :packages
+    attr_reader :dir
 
     def initialize(dir)
-      @dir = dir
+      @dir = File.expand_path(dir)
       parse!
     end
 
@@ -68,18 +101,58 @@ module AptControl
       package && package.versions
     end
 
+    def changes_fname(package_name, version)
+      Dir.chdir(@dir) do
+        parsed_changes = Dir['*.changes'].find { |fname|
+          parse_changes_fname(fname)
+        }
+      end
+    end
+
     def parse!
       Dir.chdir(@dir) do
         parsed_changes = Dir['*.changes'].map { |fname|
-          fname.split('_')[0...2]
-        }
+          begin ; parse_changes_fname(fname) ; rescue => e; $stderr.puts(e) ; end
+        }.compact
 
         package_names = parsed_changes.map(&:first).sort.uniq
         @packages = package_names.map do |name|
           versions = parsed_changes.select {|n, v | name == n }.
             map(&:last).
-            map {|s| Version.parse(s) }
+            map {|s| begin ; Version.parse(s) ; rescue => e ; $stderr.puts(e) ; end }.
+            compact
           Package.new(name, versions)
+        end
+      end
+    end
+
+    def parse_changes_fname(fname)
+      name, version = fname.split('_')[0...2]
+      raise "bad changes filename #{fname}" unless name and version
+      [name, version]
+    end
+
+    def watch(&block)
+      Listen.to(@dir, :filter => /\.changes$/) do |modified, added, removed|
+        added.each do |fname|
+          begin
+            fname = File.basename(fname)
+            name, version_string = parse_changes_fname(fname)
+            package = @packages.find {|p| p.name == name }
+            version = Version.parse(version_string)
+
+            if package == nil
+              @packages << package = Package.new(name, [version])
+            else
+              package.add_version(version)
+            end
+
+            yield(package, version)
+          rescue => e
+            $stderr.puts("Could not parse changes filename #{fname}: #{e}")
+            $stderr.puts(e.backtrace)
+            next
+          end
         end
       end
     end
@@ -93,6 +166,11 @@ module AptControl
         @name = name
         @versions = versions
       end
+
+      def add_version(version)
+        @versions << version
+      end
+
       def changes_fname(version) ; end
 
     end
@@ -141,28 +219,35 @@ module AptControl
                                    end
         end
 
-        @parts = [-1, -1, -1, -1].
-          zip(version.split('.')).
-          map {|d, g| g || d }
-        @version = Version.new(*@parts)
+        ['=', '>=', '~>'].include?(@restriction) or
+          raise "unrecognised restriction: '#{@restriction}'"
+
+        @version = Version.parse(version)
       end
 
       def higher_available?(included, available)
         available.find {|a| a > included }
       end
 
-      def upgradeable?(included, available)
-        return false unless higher_available?(included, available)
-
+      def satisfied_by?(included)
         case @restriction
         when '='
-          available.find {|a| a == version || a =~ version }
+          included.satisfies_exactly(version)
         when '>='
-          available.find {|a| a >= version }
+          included.satisfies_loosely(version)
         when '~>'
-          available.find {|a| a.to_a[0..2] == version.to_a[0..2] && a.bugfix > version.bugfix }
-        else false
+          included.satisfies_pessimisticly(version)
+        else raise "this shouldn't have happened"
         end
+      end
+
+      def upgradeable?(included, available)
+        return false unless higher_available?(included, available)
+        return true if available.any? {|a| satisfied_by?(a) }
+      end
+
+      def upgradeable_to(available)
+        available.select {|a| satisfied_by?(a) }
       end
     end
 
@@ -184,12 +269,19 @@ module AptControl
       @apt_site_dir = apt_site_dir
     end
 
+    def reprepro_cmd
+      "reprepro -b #{@apt_site_dir}"
+    end
+
     def included_version(distribution_name, package_name)
-      command = "reprepro -Tdsc -b #{@apt_site_dir} list #{distribution_name} #{package_name}"
+      command = "#{reprepro_cmd} -Tdsc list #{distribution_name} #{package_name}"
       output = exec(command, :name => 'reprepro')
       Version.parse(output.split(' ').last)
     end
 
-    def include!(distribution_name, changes_fname) ; end
+    def include!(distribution_name, changes_fname)
+      command = "#{reprepro_cmd} include #{distribution_name} #{changes_fname}"
+      exec(command, :name => 'reprepro')
+    end
   end
 end
