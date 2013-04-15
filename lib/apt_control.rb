@@ -33,7 +33,7 @@ module AptControl
     end
 
     def <=>(rhs)
-      self.to_a <=> rhs.to_a
+      self.to_a.compact <=> rhs.to_a.compact
     end
 
     def ==(rhs)
