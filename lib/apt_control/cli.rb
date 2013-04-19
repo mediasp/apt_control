@@ -3,10 +3,6 @@ require 'climate'
 module AptControl
   class CLI
 
-    def self.init_commands
-#      re
-    end
-
     def self.main
       init_commands
 
@@ -39,6 +35,7 @@ module AptControl
 Move packages from an archive in to your reprepro style apt repository
 """
 
+      opt :log_file, "File to send log output to, defaults to stdout", :type => :string
       opt :apt_site_dir, "Directory containing apt files", :type => :string
       opt :control_file, "Path to control file containing inclusion rules", :type => :string
       opt :build_archive_dir, "Directory containing debian build files", :type => :string
@@ -46,8 +43,12 @@ Move packages from an archive in to your reprepro style apt repository
       opt :jabber_password, "Password for connecting to jabber server", :type => :string
       opt :jabber_chatroom_id, "Jabber ID for chatroom to send notifications to", :type => :string
 
+      def logger
+        @logger ||= Logger.new(options[:log_file] || STDOUT)
+      end
+
       def apt_site
-        @apt_site ||= AptSite.new(options[:apt_site_dir])
+        @apt_site ||= AptSite.new(options[:apt_site_dir], logger)
       end
 
       def control_file
@@ -55,7 +56,7 @@ Move packages from an archive in to your reprepro style apt repository
       end
 
       def build_archive
-        @build_archive ||= BuildArchive.new(options[:build_archive_dir])
+        @build_archive ||= BuildArchive.new(options[:build_archive_dir], logger)
       end
 
       def notifier

@@ -3,8 +3,9 @@ module AptControl
   class AptSite
     include Exec::Helpers
 
-    def initialize(apt_site_dir)
+    def initialize(apt_site_dir, logger)
       @apt_site_dir = apt_site_dir
+      @logger = logger
     end
 
     def reprepro_cmd
@@ -28,8 +29,8 @@ module AptControl
         exec(command, :name => 'reprepro')
         true
       rescue Exec::UnexpectedExitStatus => e
-        $stderr.puts("Error executing: #{e.command}")
-        $stderr.puts(e.stderr)
+        @logger.error("Error executing: #{e.command}")
+        @logger.error(e.stderr)
         false
       end
     end

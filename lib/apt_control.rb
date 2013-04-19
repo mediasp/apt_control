@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 require 'inifile'
 require 'listen'
+require 'logger'
 
 module AptControl
 

@@ -6,8 +6,9 @@ module AptControl
     attr_reader :packages
     attr_reader :dir
 
-    def initialize(dir)
+    def initialize(dir, logger)
       @dir = File.expand_path(dir)
+      @logger = logger
       parse!
     end
 
@@ -31,15 +32,26 @@ module AptControl
     def parse!
       Dir.chdir(@dir) do
         parsed_changes = Dir['*.changes'].map { |fname|
-          begin ; parse_changes_fname(fname) ; rescue => e; $stderr.puts(e) ; end
+          begin
+            parse_changes_fname(fname)
+          rescue => e
+            @logger.error("Unable to parse changes filename: #{fname}")
+            @logger.error(e)
+          end
         }.compact
 
         package_names = parsed_changes.map(&:first).sort.uniq
         @packages = package_names.map do |name|
           versions = parsed_changes.select {|n, v | name == n }.
             map(&:last).
-            map {|s| begin ; Version.parse(s) ; rescue => e ; $stderr.puts(e) ; end }.
-            compact
+            map {|s|
+            begin
+              Version.parse(s)
+            rescue => e
+              @logger.error("Couldn't parse version string: #{s}")
+              @logger.error(e)
+            end
+          }.compact
           Package.new(name, versions)
         end
       end
@@ -71,8 +83,8 @@ module AptControl
 
             yield(package, version)
           rescue => e
-            $stderr.puts("Could not parse changes filename #{fname}: #{e}")
-            $stderr.puts(e.backtrace)
+            @logger.error("Could not parse changes filename #{fname}: #{e}")
+            @logger.error(e)
             next
           end
         end
