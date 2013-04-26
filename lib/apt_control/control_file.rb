@@ -79,7 +79,8 @@ module AptControl
       # included b) any of the available packages satisfy this rule
       def upgradeable?(included, available)
         return false unless higher_available?(included, available)
-        return true if available.any? {|a| satisfied_by?(a) }
+        higher = available.select {|a| a > included }
+        return true if higher.any? {|a| satisfied_by?(a) }
       end
 
       # will return the subset of versions from available that satisfy this rule
