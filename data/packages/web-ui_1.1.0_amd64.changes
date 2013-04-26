@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Fri, 26 Apr 2013 22:15:05 +0100
+Source: web-ui
+Binary: web-ui
+Architecture: source all
+Version: 1.1.0
+Distribution: unstable
+Urgency: low
+Maintainer: Nick Griffiths <nick@mediasp.com>
+Changed-By: Nick Griffiths <nick@mediasp.com>
+Description: 
+ web-ui     - Dummy package to fulfill package dependencies
+Changes: 
+ web-ui (1.1.0) unstable; urgency=low
+ .
+   * First version
+Checksums-Sha1: 
+ 46369e01ba459765f1c6e740e0fae2f3b55c12af 439 web-ui_1.1.0.dsc
+ af20c769e9f390f6097a5d709ca25026c2a85db8 1971 web-ui_1.1.0.tar.gz
+ 1d4911c3512663d91c455f9d82643f683b2d2142 2294 web-ui_1.1.0_all.deb
+Checksums-Sha256: 
+ 13ac2860901866394dd861cf6e24c60361d505562a896c87b65195e5040bd079 439 web-ui_1.1.0.dsc
+ f646c445710e1d506d6750b3a92e5ade7afcde954de06b2f9123d213469111e9 1971 web-ui_1.1.0.tar.gz
+ c911377e9d7942407ce1381f0dfb5bafdf5f60903019304337c78aa16ea84b25 2294 web-ui_1.1.0_all.deb
+Files: 
+ 6611d9f77454c28cb8dd961116c834a7 439 misc optional web-ui_1.1.0.dsc
+ db48d82383b1d481e0971f844ebcc790 1971 misc optional web-ui_1.1.0.tar.gz
+ 9dfe3e11cc8a5476c8f3c4c2db4a0817 2294 misc optional web-ui_1.1.0_all.deb

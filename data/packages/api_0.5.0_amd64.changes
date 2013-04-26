@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Fri, 26 Apr 2013 22:19:18 +0100
+Source: api
+Binary: api
+Architecture: source all
+Version: 0.5.0
+Distribution: unstable
+Urgency: low
+Maintainer: Nick Griffiths <nick@mediasp.com>
+Changed-By: Nick Griffiths <nick@mediasp.com>
+Description: 
+ api        - Dummy package to fulfill package dependencies
+Changes: 
+ api (0.5.0) unstable; urgency=low
+ .
+   * First version
+Checksums-Sha1: 
+ 5e21994fe5a7303e4f57f27e98f6265b2af0477d 424 api_0.5.0.dsc
+ a9b51897ccaefc7c9c8c56f3538491cbdb2a99f4 1967 api_0.5.0.tar.gz
+ 1ad8eac91ac8dabc2d27fea91d81b5a796b7a4e6 2296 api_0.5.0_all.deb
+Checksums-Sha256: 
+ ea64f096a6a7691d2c3809074a1ff6626571f73899b043f1898a917b2ed625cd 424 api_0.5.0.dsc
+ e3e829865fa782b371752a6a8548d4a109fd498b094973e10ac79880160fa9e3 1967 api_0.5.0.tar.gz
+ bd3a616d25015bec7a2e29fe24d64d80cf65362cf0abf4f126a47f7b87d0d4f3 2296 api_0.5.0_all.deb
+Files: 
+ ea68edb36f7c6832a94b54733e384227 424 misc optional api_0.5.0.dsc
+ d560ab82cdc2da1e8716410d29e96b37 1967 misc optional api_0.5.0.tar.gz
+ 8bb13ddb30ab4ee2a0755857db19dd52 2296 misc optional api_0.5.0_all.deb

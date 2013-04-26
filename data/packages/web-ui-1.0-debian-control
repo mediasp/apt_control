@@ -1,0 +1,10 @@
+### Commented entries have reasonable defaults.
+### Uncomment to edit them.
+Section: misc
+Priority: optional
+# Homepage: <enter URL here; no default>
+Standards-Version: 3.6.2
+
+Package: web-ui
+Version: 1.0
+Architecture: all

@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Fri, 26 Apr 2013 22:22:56 +0100
+Source: worker
+Binary: worker
+Architecture: source all
+Version: 0.5.5-5
+Distribution: unstable
+Urgency: low
+Maintainer: Nick Griffiths <nick@mediasp.com>
+Changed-By: Nick Griffiths <nick@mediasp.com>
+Description: 
+ worker     - Dummy package to fulfill package dependencies
+Changes: 
+ worker (0.5.5-5) unstable; urgency=low
+ .
+   * First version
+Checksums-Sha1: 
+ 222ba8a94e5872ad47e60484d04fbd1dcbd91570 447 worker_0.5.5-5.dsc
+ 35ee58fa554532ee101e0f5c4d9c663e17188aa0 1978 worker_0.5.5-5.tar.gz
+ b6bcba1624d07bb5dd78ecbe6302a6b008a05609 2316 worker_0.5.5-5_all.deb
+Checksums-Sha256: 
+ ac971d684bf9ae9358d70888a09a4f43ffcf3725d45dcf5779b4df9f88b32ef3 447 worker_0.5.5-5.dsc
+ 5dcca5a55de927ec822c981ca9b015097070dcc679a9b0e4e091d106c7fecaa3 1978 worker_0.5.5-5.tar.gz
+ 188e2625d6216ab28d96973ec28ef79ab0bfe9ed9c0313e0900fa7b9c40a73bd 2316 worker_0.5.5-5_all.deb
+Files: 
+ 7bf3c599d129bda438ee443405b58479 447 misc optional worker_0.5.5-5.dsc
+ f87a9fe8921ace88c337b7b0cd7602bc 1978 misc optional worker_0.5.5-5.tar.gz
+ cbc8b59fc21b893028fc4b7d3c904126 2316 misc optional worker_0.5.5-5_all.deb
