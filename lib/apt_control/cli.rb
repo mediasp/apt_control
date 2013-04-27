@@ -15,12 +15,20 @@ module AptControl
     end
   end
 
-  class CLI
+  module CLI
 
     def self.main
+      init_commands
+
       Climate.with_standard_exception_handling do
         Root.run(ARGV)
       end
+    end
+
+    def self.init_commands
+      require 'apt_control/cli/status'
+      require 'apt_control/cli/watch'
+      require 'apt_control/cli/include'
     end
 
     module Common
@@ -141,124 +149,11 @@ YAML file containing a single hash of key value/pairs for each option.
       end
 
       def notify(message)
+        logger.info("notify: #{message}")
         return unless config[:jabber_enabled]
         notifier.message(message)
       end
-
     end
-
-    class Watch < Climate::Command('watch')
-      include Common
-      subcommand_of Root
-      description """Watch the build archive for new files to include"""
-
-      opt :noop, "Only pretend to do stuff to the apt archive"
-
-      def run
-        validate_config!
-
-        notify("Watching for new packages in #{build_archive.dir}")
-        build_archive.watch do |package, new_version|
-          notify("new package: #{package.name} at #{new_version}")
-
-          updated = control_file.distributions.map do |dist|
-            rule = dist[package.name] or next
-            included = apt_site.included_version(dist.name, package.name)
-
-            if rule.upgradeable?(included, [new_version])
-              if options[:noop]
-                notify("package #{package.name} can be upgraded to #{new_version} on #{dist.name} (noop)")
-              else
-                # FIXME error handling here, please
-                apt_site.include!(dist.name, build_archive.changes_fname(rule.package_name, new_version))
-                notify("package #{package.name} upgraded to #{new_version} on #{dist.name}")
-              end
-              dist.name
-            else
-              nil
-            end
-          end.compact
-
-          if updated.size == 0
-            notify("package #{package.name} could not be updated on any distributions")
-          end
-        end
-      end
-    end
-
-    class Include < Climate::Command('include')
-      include Common
-      subcommand_of Root
-      description """Include in the apt site all packages from the build-archive
-that the control file will allow"""
-
-      opt :noop, "Do a dry run, printing what you would do out to stdout", :default => false
-
-      def run
-        validate_config!
-
-        control_file.distributions.each do |dist|
-          dist.package_rules.each do |rule|
-            included = apt_site.included_version(dist.name, rule.package_name)
-            available = build_archive[rule.package_name]
-
-            next unless available
-
-            if rule.upgradeable?(included, available)
-              version = rule.upgradeable_to(available).max
-              if options[:noop]
-                puts "I want to upgrade from #{included} to version #{version} of #{rule.package_name}"
-              else
-                apt_site.include!(dist.name, build_archive.changes_fname(rule.package_name, version))
-              end
-            end
-          end
-        end
-      end
-
-    end
-
-    class Status < Climate::Command('status')
-      include Common
-      subcommand_of Root
-      description "Dump current state of apt site and build archive"
-
-      opt :machine_readable, "If true, output in a unix-friendly format", :default => false
-
-      def run
-        validate_config!
-
-        control_file.distributions.each do |dist|
-          puts dist.name unless options[:machine_readable]
-          dist.package_rules.each do |rule|
-            included = apt_site.included_version(dist.name, rule.package_name)
-            available = build_archive[rule.package_name]
-
-            satisfied = included && rule.satisfied_by?(included)
-            upgradeable = available && rule.upgradeable?(included, available)
-
-            if options[:machine_readable]
-              fields = [
-                dist.name,
-                rule.package_name,
-                "(#{rule.restriction} #{rule.version})",
-                "#{upgradeable ? 'U' : '.'}#{satisfied ? 'S' : '.'}",
-                "included=#{included || '<none>'}",
-                "available=#{available && available.join(', ') || '<none>'} "
-              ]
-              puts fields.join(' ')
-            else
-              puts "  #{rule.package_name}"
-              puts "    rule       - #{rule.restriction} #{rule.version}"
-              puts "    included   - #{included}"
-              puts "    available  - #{available && available.join(', ')}"
-              puts "    satisfied  - #{satisfied}"
-              puts "    upgradeable - #{upgreadable}"
-            end
-          end
-        end
-      end
-    end
-
   end
 end
+
