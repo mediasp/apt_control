@@ -73,7 +73,7 @@ YAML file containing a single hash of key value/pairs for each option.
 #{configs.map {|k, d| "#{k}: #{d}" }.join("\n\n") }
 """
 
-      opt :config_file, "Location of a config file where all options can be set",
+      opt :config_file, "Alternative location for config file",
         :type => :string, :short => 'f'
 
       opt :config_option, "Supply a config option on the command line", :multi => true,
@@ -90,14 +90,15 @@ YAML file containing a single hash of key value/pairs for each option.
         file = [options[:config_file], DEFAULT_CONFIG_FILE_LOCATION].
           compact.find {|f| File.exists?(f) }
 
-        hash = if file
-          YAML.load_file(file).each do |key, value|
-            stderr.puts("Warn: Unknown key in config file: #{key}") unless self.class.cli_options.
-              find {|opt| opt.name.to_s == key.to_s }
+        hash =
+          if file
+            YAML.load_file(file).each do |key, value|
+            stderr.puts("Warn: Unknown key in config file: #{key}") unless
+              self.class.cli_options.find {|opt| opt.name.to_s == key.to_s }
           end
-        else
-          {}
-        end
+          else
+            {}
+          end
 
         options[:config_option].map {|str| str.split('=') }.
           inject(hash) {|m, (k,v)| m.merge(k.to_sym => v) }
