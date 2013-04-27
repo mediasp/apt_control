@@ -108,7 +108,7 @@ Components: misc
     include 'production', 'worker', '0.5.5-5'
     include 'staging', 'web-ui', '1.0.6-1'
 
-    run_apt_control "--build-archive-dir=#{build_archive_dir} --control-file=#{control_file} --apt-site-dir=#{apt_site_dir} status --machine-readable"
+    run_apt_control "-o build_archive_dir=#{build_archive_dir} -o control_file=#{control_file} -o apt_site_dir=#{apt_site_dir} status --machine-readable"
 
     assert_last_stdout_include 'production web-ui (= 1.1.1) .S included=1.1.1 available=1.0.6-1, 1.1.0, 1.1.1'
     assert_last_stdout_include 'production api (= 0.5.1) US included=0.5.1-3 available=0.5.0, 0.5.1-3, 0.5.1-4'
