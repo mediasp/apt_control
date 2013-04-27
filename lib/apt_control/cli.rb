@@ -140,6 +140,7 @@ YAML file containing a single hash of key value/pairs for each option.
       end
 
       def notify(message)
+        return unless config[:jabber_enabled]
         notifier.message(message)
       end
 
