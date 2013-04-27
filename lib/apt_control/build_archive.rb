@@ -67,6 +67,7 @@ module AptControl
     # in-memory list as it sees them.  Yields to the given block with the
     # package and the new version
     def watch(&block)
+      @logger.info("Watching for new changes files in #{@dir}")
       Listen.to(@dir, :filter => /\.changes$/) do |modified, added, removed|
         added.each do |fname|
           begin

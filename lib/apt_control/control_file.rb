@@ -1,31 +1,64 @@
+require 'thread'
+
 module AptControl
 
   # Loads and models the contents of a control.ini file
   # see example-control.ini in root of project for an example
   class ControlFile
 
-    attr_reader :distributions
+    def initialize(path, logger)
+      @logger = logger
+      @watch_mutex = Mutex.new
+      @path = path
+      inifile = IniFile.load(@path)
+      @distributions = parse!(inifile)
+    end
 
-    def initialize(path)
-      @inifile = IniFile.load(path)
-      parse!
+    def distributions
+      @watch_mutex.synchronize { @distributions }
     end
 
     def dump
-      @distributions.each do |d|
-        puts "#{d.name}"
-        d.package_rules.each do |pr|
-          puts "  #{pr.package_name} #{pr.restriction} #{pr.version}"
+      @watch_mutex.synchronize do
+        @distributions.each do |d|
+          puts "#{d.name}"
+          d.package_rules.each do |pr|
+            puts "  #{pr.package_name} #{pr.restriction} #{pr.version}"
+          end
         end
       end
     end
 
-    def parse!
-      @distributions = @inifile.sections.map do |section|
-        rules = @inifile[section].map do |key, value|
+    def parse!(inifile)
+      inifile.sections.map do |section|
+        rules = inifile[section].map do |key, value|
           PackageRule.new(key, value)
         end
         Distribution.new(section, rules)
+      end
+    end
+
+    # Watch the control file for changes, rebuilding
+    # internal data structures when it does
+    def watch
+      path = File.expand_path(@path)
+      @logger.info("Watching for changes to #{path}")
+      dir = File.dirname(path)
+      fname = File.basename(path)
+      Listen.to(dir, :filter => /#{Regexp.quote(fname)}/) do |modified, added, removed|
+        begin
+          @logger.info("Change to control file detected...")
+          inifile = IniFile.load(path)
+          distributions = parse!(inifile)
+
+          @watch_mutex.synchronize do
+            @distributions = distributions
+          end
+          @logger.info("...rebuilt")
+        rescue => e
+          @logger.error("Error reloading changes: #{e}")
+          @logger.error(e)
+        end
       end
     end
 

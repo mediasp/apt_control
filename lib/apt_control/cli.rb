@@ -3,6 +3,7 @@ require 'yaml'
 
 module AptControl
 
+  # Some class methods for defining config keys
   module ConfigDSL
 
     def config(key, description, options={})
@@ -128,7 +129,9 @@ YAML file containing a single hash of key value/pairs for each option.
       end
 
       def logger
-        @logger ||= Logger.new(config[:log_file] || STDOUT)
+        @logger ||= Logger.new(config[:log_file] || STDOUT).tap do |logger|
+          logger.level = Logger::DEBUG
+        end
       end
 
       def apt_site
@@ -136,7 +139,7 @@ YAML file containing a single hash of key value/pairs for each option.
       end
 
       def control_file
-        @control_file ||= ControlFile.new(config[:control_file])
+        @control_file ||= ControlFile.new(config[:control_file], logger)
       end
 
       def build_archive
