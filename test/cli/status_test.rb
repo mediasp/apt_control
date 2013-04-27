@@ -2,9 +2,6 @@ require 'tmpdir'
 require 'minitest/autorun'
 require 'minitest/spec'
 require 'apt_control'
-#require 'fileutils'
-
-puts 'lol'
 
 describe 'apt_control status (smoke tests)' do
 
