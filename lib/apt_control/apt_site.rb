@@ -25,14 +25,7 @@ module AptControl
     # myriad number of reasons, so spits out error messages to sdterr
     def include!(distribution_name, changes_fname)
       command = "#{reprepro_cmd} --ignore=wrongdistribution include #{distribution_name} #{changes_fname}"
-      begin
-        exec(command, :name => 'reprepro')
-        true
-      rescue Exec::UnexpectedExitStatus => e
-        @logger.error("Error executing: #{e.command}")
-        @logger.error(e.stderr)
-        false
-      end
+      exec(command, :name => 'reprepro')
     end
   end
 end

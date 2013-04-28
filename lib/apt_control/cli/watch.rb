@@ -71,8 +71,14 @@ has the usual set of options for running as an init.d style daemon.
               notify("package #{package.name} can be upgraded to #{new_version} on #{dist.name} (noop)")
             else
               # FIXME error handling here, please
-              apt_site.include!(dist.name, build_archive.changes_fname(rule.package_name, new_version))
-              notify("package #{package.name} upgraded to #{new_version} on #{dist.name}")
+              begin
+                apt_site.include!(dist.name, build_archive.changes_fname(rule.package_name, new_version))
+                notify("included package #{package.name}-#{new_version} in #{dist.name}")
+              rescue => e
+                notify("Failed to include package #{package.name}-#{new_version}, check log for more details")
+                logger.error("failed to include package #{package.name}")
+                logger.error(e)
+              end
             end
             dist.name
           else

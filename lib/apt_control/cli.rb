@@ -22,7 +22,13 @@ module AptControl
       init_commands
 
       Climate.with_standard_exception_handling do
-        Root.run(ARGV)
+        begin
+          Root.run(ARGV)
+        rescue Exec::UnexpectedExitStatus => e
+          $stderr.puts("Error executing: #{e.command}")
+          $stderr.puts(e.stderr)
+          exit 1
+        end
       end
     end
 
