@@ -104,7 +104,7 @@ YAML file containing a single hash of key value/pairs for each option.
           if file
             YAML.load_file(file).each do |key, value|
             stderr.puts("Warn: Unknown key in config file: #{key}") unless
-              self.class.cli_options.find {|opt| opt.name.to_s == key.to_s }
+              self.class.configs.find {|opt| opt.first.to_s == key.to_s }
           end
           else
             {}
