@@ -148,7 +148,7 @@ YAML file containing a single hash of key value/pairs for each option.
       end
 
       def notifier
-        @notify ||= Notify::Jabber.new(:jid => config[:jabber_id],
+        @notify ||= Notify::Jabber.new(:jid => config[:jabber_id], :logger => logger,
           :password => config[:jabber_password], :room_jid => config[:jabber_chatroom_id])
       end
 
