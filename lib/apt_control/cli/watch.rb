@@ -56,7 +56,7 @@ has the usual set of options for running as an init.d style daemon.
 
     def start_watching
       # update the all the rules if the control file changes
-      Thread.new { control_file.watch }
+      Thread.new { control_file.watch { notify "Control file reloaded" } }
 
       notify("Watching for new packages in #{build_archive.dir}")
       build_archive.watch do |package, new_version|

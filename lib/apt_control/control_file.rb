@@ -40,7 +40,7 @@ module AptControl
 
     # Watch the control file for changes, rebuilding
     # internal data structures when it does
-    def watch
+    def watch(&block)
       path = File.expand_path(@path)
       @logger.info("Watching for changes to #{path}")
       dir = File.dirname(path)
@@ -55,6 +55,7 @@ module AptControl
             @distributions = distributions
           end
           @logger.info("...rebuilt")
+          yield if block_given?
         rescue => e
           @logger.error("Error reloading changes: #{e}")
           @logger.error(e)
