@@ -2,13 +2,56 @@ module AptControl::CLI
   class Watch < Climate::Command('watch')
     include Common
     subcommand_of Root
-    description """Watch the build archive for new files to include"""
+    description """Watch the build archive for new files to include
+
+DAEMON
+
+The watch command can run as a daemon, backgrounding itself after start up and
+has the usual set of options for running as an init.d style daemon.
+"""
 
     opt :noop, "Only pretend to do stuff to the apt archive"
+    opt :daemonize, "Run watcher in the background", :default => false
+    opt :pidfile, "Pidfile when daemonized", :type => :string
+    opt :setuid, "Once daemonized, call setuid with this user id to drop privileges", :type => :integer
 
     def run
       validate_config!
 
+      # hit these before we daemonize so we don't just background and die
+      apt_site
+      control_file
+      build_archive
+
+      daemonize! if options[:daemonize]
+
+      start_watching
+    end
+
+
+    def daemonize!
+      pidfile = options[:pidfile]
+
+      if File.exists?(pidfile)
+        $stderr.puts("pidfile exists, not starting")
+        exit 1
+      end
+
+      pid = fork
+      exit 0 unless pid.nil?
+
+      File.open(pidfile, 'w') {|f| f.write(Process.pid) } if pidfile
+
+      if uid = options[:setuid]
+        normalized_uid = normalize_uid(uid)
+        logger.info("setting uid to #{uid}")
+        Process::Sys.setuid(uid)
+      end
+
+      at_exit { File.delete(pidfile) if File.exists?(pidfile) } if pidfile
+    end
+
+    def start_watching
       Thread.new { control_file.watch }
 
       notify("Watching for new packages in #{build_archive.dir}")
