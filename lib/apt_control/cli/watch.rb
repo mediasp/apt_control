@@ -37,21 +37,25 @@ has the usual set of options for running as an init.d style daemon.
         exit 1
       end
 
+      if uid = options[:setuid]
+        logger.info("setting uid to #{uid}")
+        begin
+          Process::Sys.setuid(uid)
+        rescue Errno::EPERM => e
+          raise Climate::ExitException, "Could not setuid with #{uid}"
+        end
+      end
+
       pid = fork
       exit 0 unless pid.nil?
 
       File.open(pidfile, 'w') {|f| f.write(Process.pid) } if pidfile
 
-      if uid = options[:setuid]
-        normalized_uid = normalize_uid(uid)
-        logger.info("setting uid to #{uid}")
-        Process::Sys.setuid(uid)
-      end
-
       at_exit { File.delete(pidfile) if File.exists?(pidfile) } if pidfile
     end
 
     def start_watching
+      # update the all the rules if the control file changes
       Thread.new { control_file.watch }
 
       notify("Watching for new packages in #{build_archive.dir}")

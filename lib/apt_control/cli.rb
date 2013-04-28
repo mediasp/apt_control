@@ -39,6 +39,7 @@ module AptControl
       def notifier ; ancestor(Root).notify ; end
       def notify(msg) ; ancestor(Root).notify(msg) ; end
       def validate_config! ; ancestor(Root).validate_config! ; end
+      def logger ; ancestor(Root).logger ; end
 
       def each_package_state(&block)
         control_file.distributions.each do |dist|
