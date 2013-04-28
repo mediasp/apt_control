@@ -32,7 +32,7 @@ has the usual set of options for running as an init.d style daemon.
     def daemonize!
       pidfile = options[:pidfile]
 
-      if File.exists?(pidfile)
+      if pidfile && File.exists?(pidfile)
         $stderr.puts("pidfile exists, not starting")
         exit 1
       end
