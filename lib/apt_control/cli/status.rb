@@ -34,7 +34,7 @@ module AptControl::CLI
             puts "    included   - #{included}"
             puts "    available  - #{available && available.join(', ')}"
             puts "    satisfied  - #{satisfied}"
-            puts "    upgradeable - #{upgreadable}"
+            puts "    upgradeable - #{upgradeable}"
           end
         end
       end
