@@ -18,7 +18,8 @@ Gem::Specification.new do |s|
   s.add_dependency "climate"
   s.add_dependency "inifile"
   s.add_dependency "xmpp4r"
-  s.add_dependency "listen"
+  s.add_dependency "listen", "~> 0.7"
+  s.add_dependency "rb-inotify", "~> 0.9"
 
   s.add_development_dependency "rspec"
   s.add_development_dependency "minitest"
