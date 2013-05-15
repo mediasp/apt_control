@@ -42,7 +42,7 @@ module AptControl
       def apt_site ; ancestor(Root).apt_site ; end
       def control_file ; ancestor(Root).control_file ; end
       def build_archive ; ancestor(Root).build_archive ; end
-      def notifier ; ancestor(Root).notify ; end
+      def notifier ; ancestor(Root).notifier ; end
       def notify(msg) ; ancestor(Root).notify(msg) ; end
       def validate_config! ; ancestor(Root).validate_config! ; end
       def logger ; ancestor(Root).logger ; end

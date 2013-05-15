@@ -58,6 +58,11 @@ has the usual set of options for running as an init.d style daemon.
       # update the all the rules if the control file changes
       Thread.new { control_file.watch { notify "Control file reloaded" } }
 
+      bot = AptControl::Bot.new(:muc_client => notifier.muc,
+        :apt_site => apt_site, :control_file => control_file,
+        :build_archive => build_archive)
+      Thread.new { bot.start }
+
       notify("Watching for new packages in #{build_archive.dir}")
       build_archive.watch do |package, new_version|
         notify("new package: #{package.name} at #{new_version}")

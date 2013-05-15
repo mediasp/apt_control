@@ -10,6 +10,7 @@ module AptControl
   require 'apt_control/control_file'
   require 'apt_control/apt_site'
   require 'apt_control/build_archive'
+  require 'apt_control/bot'
 
   class Version
     include Comparable

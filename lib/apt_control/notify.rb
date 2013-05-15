@@ -9,6 +9,8 @@ module AptControl::Notify
   class Jabber
     include ::Jabber
 
+    attr_reader :muc
+
     def initialize(options={})
       @jid      = options[:jid]
       @password = options[:password]
