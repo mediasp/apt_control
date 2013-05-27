@@ -1,6 +1,4 @@
-require 'minitest/autorun'
-require 'minitest/spec'
-require 'apt_control'
+require 'test/helpers'
 
 describe 'AptControl::Version' do
 

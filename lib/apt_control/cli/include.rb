@@ -20,7 +20,7 @@ that the control file will allow"""
           if rule.upgradeable?(included, available)
             version = rule.upgradeable_to(available).max
             if options[:noop]
-              puts "I want to upgrade from #{included} to version #{version} of #{rule.package_name}"
+              puts "#{dist.name} #{rule.package_name} #{included} => #{version}"
             else
               apt_site.include!(dist.name, build_archive.changes_fname(rule.package_name, version))
             end
