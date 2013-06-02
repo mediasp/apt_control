@@ -85,11 +85,12 @@ module CLIHelper
     end
   end
 
-  def run_apt_control(cmd)
-    @exec = AptControl::Exec.new
+  def run_apt_control(cmd, options={})
+    @exec = AptControl::Exec.new(options)
     opts = "-o build_archive_dir=#{build_archive_dir} -o control_file=#{control_file} -o apt_site_dir=#{apt_site_dir}"
     begin
-      @exec.exec("ruby -rrubygems -Ilib bin/apt_control #{opts} " + cmd)
+      cmd = "ruby -rrubygems -Ilib bin/apt_control #{opts} " + cmd
+      @exec.exec(cmd)
     rescue AptControl::Exec::UnexpectedExitStatus => e
 
       fail(e.message + "\n" + e.stderr)

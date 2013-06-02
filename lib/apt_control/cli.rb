@@ -39,6 +39,8 @@ module AptControl
     end
 
     module Common
+      def package_states ; ancestor(Root).package_states ; end
+      def includer ; ancestor(Root).includer ; end
       def apt_site ; ancestor(Root).apt_site ; end
       def control_file ; ancestor(Root).control_file ; end
       def build_archive ; ancestor(Root).build_archive ; end
@@ -141,6 +143,12 @@ YAML file containing a single hash of key value/pairs for each option.
         end
       end
 
+      def package_states
+        @package_states ||= PackageStates.new(apt_site: apt_site,
+          build_archive: build_archive,
+          control_file: control_file)
+      end
+
       def apt_site
         @apt_site ||= AptSite.new(config[:apt_site_dir], logger)
       end
@@ -156,6 +164,10 @@ YAML file containing a single hash of key value/pairs for each option.
       def notifier
         @notify ||= Notify::Jabber.new(:jid => config[:jabber_id], :logger => logger,
           :password => config[:jabber_password], :room_jid => config[:jabber_chatroom_id])
+      end
+
+      def includer
+        @includer ||= Includer.new(apt_site, build_archive)
       end
 
       def notify(message)

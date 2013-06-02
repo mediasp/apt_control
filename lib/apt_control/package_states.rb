@@ -1,0 +1,57 @@
+module AptControl
+  class PackageStates
+    include Enumerable
+
+    def initialize(options)
+      @apt_site      = options.fetch(:apt_site)
+      @build_archive = options.fetch(:build_archive)
+      @control_file  = options.fetch(:control_file)
+    end
+
+    # yield a package state for each entry in the control file
+    def each(&block)
+      @control_file.distributions.each do |dist|
+        dist.package_rules.each do |rule|
+          yield PackageState.new(dist: dist, rule: rule, apt_site: @apt_site,
+            build_archive: @build_archive)
+        end
+      end
+    end
+  end
+
+  class PackageState
+
+    attr_reader :dist, :rule
+
+    def initialize(options)
+      @dist          = options.fetch(:dist)
+      @rule          = options.fetch(:rule)
+      @apt_site      = options.fetch(:apt_site)
+      @build_archive = options.fetch(:build_archive)
+    end
+
+    def included
+      @included ||= @apt_site.included_version(dist.name, rule.package_name)
+    end
+
+    def available
+      @available ||= (@build_archive[rule.package_name] || [])
+    end
+
+    def package_name ; rule.package_name ; end
+    def included? ;    !! included       ; end
+    def available? ;   available.any?    ; end
+
+    def satisfied?
+      included? && rule.satisfied_by?(included)
+    end
+
+    def upgradeable?
+      available? && rule.upgradeable?(included, available)
+    end
+
+    def upgradeable_to
+      rule.upgradeable_to(available)
+    end
+  end
+end

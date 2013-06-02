@@ -10,6 +10,8 @@ module AptControl
   require 'apt_control/control_file'
   require 'apt_control/apt_site'
   require 'apt_control/build_archive'
+  require 'apt_control/package_states'
+  require 'apt_control/includer'
 
   class Version
     include Comparable

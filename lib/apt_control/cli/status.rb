@@ -9,33 +9,29 @@ module AptControl::CLI
     def run
       validate_config!
 
-      control_file.distributions.each do |dist|
-        puts dist.name unless options[:machine_readable]
-        dist.package_rules.each do |rule|
-          included = apt_site.included_version(dist.name, rule.package_name)
-          available = build_archive[rule.package_name]
-
-          satisfied = included && rule.satisfied_by?(included)
-          upgradeable = available && rule.upgradeable?(included, available)
-
-          if options[:machine_readable]
-            fields = [
-              dist.name,
-              rule.package_name,
-              "(#{rule.restriction} #{rule.version})",
-              "#{upgradeable ? 'U' : '.'}#{satisfied ? 'S' : '.'}",
-              "included=#{included || '<none>'}",
-              "available=#{available && available.join(', ') || '<none>'} "
-            ]
-            puts fields.join(' ')
-          else
-            puts "  #{rule.package_name}"
-            puts "    rule       - #{rule.restriction} #{rule.version}"
-            puts "    included   - #{included}"
-            puts "    available  - #{available && available.join(', ')}"
-            puts "    satisfied  - #{satisfied}"
-            puts "    upgradeable - #{upgradeable}"
-          end
+      if options[:machine_readable]
+        package_states.each do |state|
+          fields = [
+            state.dist.name,
+            state.package_name,
+            "(#{state.rule.restriction} #{state.rule.version})",
+            "#{state.upgradeable? ? 'U' : '.'}#{state.satisfied? ? 'S' : '.'}",
+            "included=#{state.included || '<none>'}",
+            "available=#{state.available? ? state.available.join(', ') : '<none>'} "
+          ]
+          puts fields.join(' ')
+        end
+      else
+        last_dist = nil
+        package_states.each do |state|
+          puts state.dist.name if last_dist != state.dist
+          last_dist = state.dist
+          puts "  #{state.package_name}"
+          puts "    rule       - #{state.rule.restriction} #{state.rule.version}"
+          puts "    included   - #{state.included}"
+          puts "    available  - #{state.available.join(', ')}"
+          puts "    satisfied  - #{state.satisfied?}"
+          puts "    upgradeable - #{state.upgradeable?}"
         end
       end
     end

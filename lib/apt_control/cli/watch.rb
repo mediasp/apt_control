@@ -59,30 +59,23 @@ has the usual set of options for running as an init.d style daemon.
       Thread.new { control_file.watch { notify "Control file reloaded" } }
 
       notify("Watching for new packages in #{build_archive.dir}")
+
       build_archive.watch do |package, new_version|
         notify("new package: #{package.name} at #{new_version}")
 
-        updated = control_file.distributions.map do |dist|
-          rule = dist[package.name] or next
-          included = apt_site.included_version(dist.name, package.name)
+        matched_states = package_states.select {|s| s.package_name == package.name }
 
-          if rule.upgradeable?(included, [new_version])
-            if options[:noop]
-              notify("package #{package.name} can be upgraded to #{new_version} on #{dist.name} (noop)")
-            else
-              # FIXME error handling here, please
-              begin
-                apt_site.include!(dist.name, build_archive.changes_fname(rule.package_name, new_version))
-                notify("included package #{package.name}-#{new_version} in #{dist.name}")
-              rescue => e
-                notify("Failed to include package #{package.name}-#{new_version}, check log for more details")
-                logger.error("failed to include package #{package.name}")
-                logger.error(e)
-              end
+        updated = matched_states.map do |state|
+          if state.upgradeable_to.max == new_version
+            begin
+              includer.perform_for(state, new_version, options[:noop])
+              notify("included package #{package.name}-#{new_version} in #{state.dist.name}")
+              state.dist.name
+            rescue => e
+              notify("Failed to include package #{package.name}-#{new_version}, check log for more details")
+              logger.error("failed to include package #{package.name}")
+              logger.error(e)
             end
-            dist.name
-          else
-            nil
           end
         end.compact
 

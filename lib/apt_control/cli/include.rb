@@ -10,21 +10,14 @@ that the control file will allow"""
     def run
       validate_config!
 
-      control_file.distributions.each do |dist|
-        dist.package_rules.each do |rule|
-          included = apt_site.included_version(dist.name, rule.package_name)
-          available = build_archive[rule.package_name]
+      package_states.each do |state|
+        next unless state.upgradeable?
 
-          next unless available
-
-          if rule.upgradeable?(included, available)
-            version = rule.upgradeable_to(available).max
-            if options[:noop]
-              puts "#{dist.name} #{rule.package_name} #{included} => #{version}"
-            else
-              apt_site.include!(dist.name, build_archive.changes_fname(rule.package_name, version))
-            end
-          end
+        version = state.upgradeable_to.max
+        if options[:noop]
+          puts "#{state.dist.name} #{state.package_name} #{state.included} => #{version}"
+        else
+          includer.perform_for(state, version)
         end
       end
     end
