@@ -39,6 +39,7 @@ module AptControl
     end
 
     module Common
+      # FIXME tidy up with some meta magic
       def package_states ; ancestor(Root).package_states ; end
       def includer ; ancestor(Root).includer ; end
       def apt_site ; ancestor(Root).apt_site ; end
@@ -48,6 +49,7 @@ module AptControl
       def notify(msg) ; ancestor(Root).notify(msg) ; end
       def validate_config! ; ancestor(Root).validate_config! ; end
       def logger ; ancestor(Root).logger ; end
+      def fs_listener_factory ; ancestor(Root).fs_listener_factory ; end
 
       def each_package_state(&block)
         control_file.distributions.each do |dist|
@@ -77,6 +79,7 @@ module AptControl
       config :jabber_id, "Jabber ID for notifications", :required => false
       config :jabber_password, "Password for connecting to jabber server", :required => false
       config :jabber_chatroom_id, "Jabber ID for chatroom to send notifications to", :required => false
+      config :disable_inotify, "Set to true to disable use of inotify", :required => false
 
       description """
 Move packages from an archive in to your reprepro style apt repository.
@@ -170,9 +173,34 @@ YAML file containing a single hash of key value/pairs for each option.
         @includer ||= Includer.new(apt_site, build_archive)
       end
 
+      class FSListenerFactory
+
+        attr_reader :disable_inotify
+
+        def initialize(options={})
+          @disable_inotify = options[:disable_inotify]
+        end
+
+        def new(dir, pattern, &on_change)
+          Listen.to(dir).filter(pattern).tap do |listener|
+            if disable_inotify
+              listener.force_polling(true)
+              listener.polling_fallback_message(false)
+            end
+
+            listener.change(&on_change)
+          end
+        end
+      end
+
+      def fs_listener_factory
+        @fs_listener_factory ||= FSListenerFactory.new(
+          disable_inotify: config[:disable_inotify].to_s == 'true')
+      end
+
       def notify(message)
         logger.info("notify: #{message}")
-        return unless config[:jabber_enabled]
+        return unless config[:jabber_enabled].to_s == 'true'
         notifier.message(message)
       end
     end

@@ -40,12 +40,12 @@ module AptControl
 
     # Watch the control file for changes, rebuilding
     # internal data structures when it does
-    def watch(&block)
+    def watch(fs_listener_factory, &block)
       path = File.expand_path(@path)
-      @logger.info("Watching for changes to #{path}")
       dir = File.dirname(path)
       fname = File.basename(path)
-      Listen.to(dir, :filter => /#{Regexp.quote(fname)}/) do |modified, added, removed|
+      @logger.info("Watching for changes to #{path}")
+      fs_listener_factory.new(dir, /#{Regexp.quote(fname)}/) do |modified, added, removed|
         begin
           @logger.info("Change to control file detected...")
           inifile = IniFile.load(path)
@@ -60,7 +60,7 @@ module AptControl
           @logger.error("Error reloading changes: #{e}")
           @logger.error(e)
         end
-      end
+      end.start
     end
 
     class PackageRule

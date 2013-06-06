@@ -61,8 +61,11 @@ module CLIHelper
       end
     end
 
-    IniFile.new(:filename => control_file).tap do |inifile|
+    IniFile.new.tap do |inifile|
       inifile.merge!(hash)
+      # apply filename after new to stop it reading old contents
+      inifile.filename = control_file
+
       inifile.write
     end
   end
@@ -87,7 +90,15 @@ module CLIHelper
 
   def run_apt_control(cmd, options={})
     @exec = AptControl::Exec.new(options)
-    opts = "-o build_archive_dir=#{build_archive_dir} -o control_file=#{control_file} -o apt_site_dir=#{apt_site_dir}"
+    opts = {
+      build_archive_dir: build_archive_dir,
+      control_file:      control_file,
+      apt_site_dir:      apt_site_dir,
+      # there is some problem with inotify under tests - the events don't seem
+      # to be fired - maybe because the (original) parent process made the
+      # changes?
+      disable_inotify:   true
+    }.map {|k,v| "-o #{k}=#{v}" }.join(' ')
     begin
       cmd = "ruby -rrubygems -Ilib bin/apt_control #{opts} " + cmd
       @exec.exec(cmd)

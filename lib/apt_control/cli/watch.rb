@@ -55,33 +55,58 @@ has the usual set of options for running as an init.d style daemon.
     end
 
     def start_watching
+      threads = [
+        watch_control_in_new_thread,
+        watch_build_archive_in_new_thread
+      ]
+
+      threads.each(&:join)
+    end
+
+    def watch_control_in_new_thread
       # update the all the rules if the control file changes
-      Thread.new { control_file.watch { notify "Control file reloaded" } }
-
-      notify("Watching for new packages in #{build_archive.dir}")
-
-      build_archive.watch do |package, new_version|
-        notify("new package: #{package.name} at #{new_version}")
-
-        matched_states = package_states.select {|s| s.package_name == package.name }
-
-        updated = matched_states.map do |state|
-          if state.upgradeable_to.max == new_version
-            begin
-              includer.perform_for(state, new_version, options[:noop])
-              notify("included package #{package.name}-#{new_version} in #{state.dist.name}")
-              state.dist.name
-            rescue => e
-              notify("Failed to include package #{package.name}-#{new_version}, check log for more details")
-              logger.error("failed to include package #{package.name}")
-              logger.error(e)
-            end
-          end
-        end.compact
-
-        if updated.size == 0
-          notify("package #{package.name} could not be updated on any distributions")
+      Thread.new do
+        begin
+          control_file.watch(fs_listener_factory) { notify "Control file reloaded" }
+        ensure
+          logger.error("control file watch loop exited")
         end
+      end
+    end
+
+    def watch_build_archive_in_new_thread
+      Thread.new do
+        begin
+          build_archive.watch(fs_listener_factory) do |package, new_version|
+            handle_new_package(package, new_version)
+          end.join
+        ensure
+          logger.error("build archive watch loop exited")
+        end
+      end
+    end
+
+    def handle_new_package(package, new_version)
+      notify("new package: #{package.name} at #{new_version}")
+
+      matched_states = package_states.select {|s| s.package_name == package.name }
+
+      updated = matched_states.map do |state|
+        if state.upgradeable_to.max == new_version
+          begin
+            includer.perform_for(state, new_version, options[:noop])
+            notify("included package #{package.name}-#{new_version} in #{state.dist.name}")
+            state.dist.name
+          rescue => e
+            notify("Failed to include package #{package.name}-#{new_version}, check log for more details")
+            logger.error("failed to include package #{package.name}")
+            logger.error(e)
+          end
+        end
+      end.compact
+
+      if updated.size == 0
+        notify("package #{package.name} could not be updated on any distributions")
       end
     end
   end

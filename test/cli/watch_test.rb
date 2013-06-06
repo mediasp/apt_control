@@ -33,7 +33,7 @@ describe 'apt_control watch' do
   end
 
   def wait_for_output(line)
-    timeout_secs = 20
+    timeout_secs = 5
     start = Time.now.to_i
     while Time.now.to_i < (start + timeout_secs)
       string = File.exists?(log_file) && File.read(log_file) || ''
@@ -71,14 +71,41 @@ describe 'apt_control watch' do
 
     wait_for_output "included package api-0.5.1-4 in production"
 
+    # remove me?
     kill_watch_daemon
 
     run_apt_control 'status -m'
     assert_last_stdout_include 'production api (>= 0.5.1) .S included=0.5.1-4'
-
-
   end
 
   it 'observes the control file changing, reloading control rules' do
+    control :production => { "api" => '= 0.5.0' }
+    build 'api', '0.5.0'
+    build 'api', '0.5.1-3'
+    include 'production', 'api', '0.5.0'
+
+    run_apt_control 'status -m'
+    assert_last_stdout_include 'production api (= 0.5.0) .S'
+
+    Thread.new do
+      # Even though I'm daemonizing, this never returns - assuming it is because
+      # I'm reading from stdout & stderr and these are inherited by the
+      # daemonized process?
+      begin
+        run_apt_control "-o log_file=#{log_file} watch --daemonize --pidfile=#{pidfile}", :quiet => false
+      rescue => e
+        puts(e)
+        puts(e.backtrace)
+      end
+    end
+
+    wait_for_output "Watching for changes to #{control_file}"
+
+    control :production => { "api" => "= 0.5.1-3" }
+
+    wait_for_output "Change to control file detected..."
+    wait_for_output "...rebuilt"
+
+    # TODO somehow assert that it did reload
   end
 end
