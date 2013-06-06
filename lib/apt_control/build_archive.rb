@@ -89,7 +89,7 @@ module AptControl
             next
           end
         end
-      end.start
+      end.start.join
     end
 
     class Package

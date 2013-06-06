@@ -60,6 +60,7 @@ has the usual set of options for running as an init.d style daemon.
         watch_build_archive_in_new_thread
       ]
 
+      # these should never exit, so stop main thread exiting by joining to them
       threads.each(&:join)
     end
 
@@ -69,7 +70,7 @@ has the usual set of options for running as an init.d style daemon.
         begin
           control_file.watch(fs_listener_factory) { notify "Control file reloaded" }
         ensure
-          logger.error("control file watch loop exited")
+          logger.warn("control file watch loop exited")
         end
       end
     end
@@ -79,9 +80,9 @@ has the usual set of options for running as an init.d style daemon.
         begin
           build_archive.watch(fs_listener_factory) do |package, new_version|
             handle_new_package(package, new_version)
-          end.join
+          end
         ensure
-          logger.error("build archive watch loop exited")
+          logger.warn("build archive watch loop exited")
         end
       end
     end

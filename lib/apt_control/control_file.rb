@@ -60,7 +60,7 @@ module AptControl
           @logger.error("Error reloading changes: #{e}")
           @logger.error(e)
         end
-      end.start
+      end.start.join
     end
 
     class PackageRule
