@@ -101,11 +101,12 @@ describe 'apt_control watch' do
 
     wait_for_output "Watching for changes to #{control_file}"
 
-    control :production => { "api" => "= 0.5.1-3" }
+    control :production => { "api" => "= 0.5.1-3" }, :staging => { "api" => "= 0.5.0"}
 
     wait_for_output "Change to control file detected..."
     wait_for_output "...rebuilt"
 
-    # TODO somehow assert that it did reload
+    wait_for_output "included package api-0.5.1-3 in production"
+    wait_for_output "included package api-0.5.0 in staging"
   end
 end

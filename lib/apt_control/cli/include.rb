@@ -10,14 +10,12 @@ that the control file will allow"""
     def run
       validate_config!
 
-      package_states.each do |state|
-        next unless state.upgradeable?
-
-        version = state.upgradeable_to.max
+      includer.perform_for_all(package_states) do |state, version|
         if options[:noop]
           puts "#{state.dist.name} #{state.package_name} #{state.included} => #{version}"
+          false
         else
-          includer.perform_for(state, version)
+          true
         end
       end
     end

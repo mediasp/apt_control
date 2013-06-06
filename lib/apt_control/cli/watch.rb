@@ -68,7 +68,15 @@ has the usual set of options for running as an init.d style daemon.
       # update the all the rules if the control file changes
       Thread.new do
         begin
-          control_file.watch(fs_listener_factory) { notify "Control file reloaded" }
+          control_file.watch(fs_listener_factory) do
+            notify "Control file reloaded"
+            # FIXME need to do some kind of locking or actor style dev for this
+            # as it looks like there could be some concurrency bugs lurking
+            includer.perform_for_all(package_states) do |package_state, new_version|
+              notify("included package #{package_state.package_name}-#{new_version} in #{package_state.dist.name}")
+              true
+            end
+          end
         ensure
           logger.warn("control file watch loop exited")
         end
