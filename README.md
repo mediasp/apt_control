@@ -46,7 +46,7 @@ production
     included    - 0.1.0
     available   - 0.1.0, 0.1.1, 0.2.0
     satisfied   - true
-    upgradeable - true
+    includeable - true
 ... # And so on
 ```
 

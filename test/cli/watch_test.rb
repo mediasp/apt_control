@@ -45,7 +45,7 @@ describe 'apt_control watch' do
     fail("Timeout waiting for '#{line}' to appear in\n#{string}")
   end
 
-  it 'observes new .changes files appearing in the build directory, including them if they are upgradeable' do
+  it 'observes new .changes files appearing in the build directory, including them if they are includeable' do
     control :production => { "api" => ">= 0.5.1" }
     build 'api', '0.5.1-3'
     include 'production', 'api', '0.5.1-3'

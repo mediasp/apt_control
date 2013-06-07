@@ -1,6 +1,6 @@
 module AptControl
 
-  # Wraps the common functionality involved in including the latest upgradeable
+  # Wraps the common functionality involved in including the latest includeable
   # package in an apt site
   class Includer
     def initialize(apt_site, build_archive)
@@ -10,9 +10,9 @@ module AptControl
 
     def perform_for_all(package_states, &visitor)
       package_states.each do |state|
-        next unless state.upgradeable?
+        next unless state.includeable?
 
-        version = state.upgradeable_to.max
+        version = state.includeable_to.max
         perform = (block_given? && yield(state, version)) || true
 
         perform_for(state, version) if perform

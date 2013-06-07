@@ -19,6 +19,8 @@ module AptControl
     end
   end
 
+  # Brings together the state of a particular package in a particular
+  # distribution
   class PackageState
 
     attr_reader :dist, :rule
@@ -46,12 +48,12 @@ module AptControl
       included? && rule.satisfied_by?(included)
     end
 
-    def upgradeable?
-      available? && rule.upgradeable?(included, available)
+    def includeable?
+      available? && rule.includeable?(included, available)
     end
 
-    def upgradeable_to
-      rule.upgradeable_to(available)
+    def includeable_to
+      rule.includeable_to(available)
     end
   end
 end

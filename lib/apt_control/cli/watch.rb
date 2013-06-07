@@ -101,7 +101,7 @@ has the usual set of options for running as an init.d style daemon.
       matched_states = package_states.select {|s| s.package_name == package.name }
 
       updated = matched_states.map do |state|
-        if state.upgradeable_to.max == new_version
+        if state.includeable_to.max == new_version
           begin
             includer.perform_for(state, new_version, options[:noop])
             notify("included package #{package.name}-#{new_version} in #{state.dist.name}")

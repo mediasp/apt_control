@@ -15,7 +15,7 @@ module AptControl::CLI
             state.dist.name,
             state.package_name,
             "(#{state.rule.restriction} #{state.rule.version})",
-            "#{state.upgradeable? ? 'U' : '.'}#{state.satisfied? ? 'S' : '.'}",
+            "#{state.includeable? ? 'I' : '.'}#{state.satisfied? ? 'S' : '.'}",
             "included=#{state.included || '<none>'}",
             "available=#{state.available? ? state.available.join(', ') : '<none>'} "
           ]
@@ -27,11 +27,11 @@ module AptControl::CLI
           puts state.dist.name if last_dist != state.dist
           last_dist = state.dist
           puts "  #{state.package_name}"
-          puts "    rule       - #{state.rule.restriction} #{state.rule.version}"
-          puts "    included   - #{state.included}"
-          puts "    available  - #{state.available.join(', ')}"
-          puts "    satisfied  - #{state.satisfied?}"
-          puts "    upgradeable - #{state.upgradeable?}"
+          puts "    rule        - #{state.rule.restriction} #{state.rule.version}"
+          puts "    included    - #{state.included}"
+          puts "    available   - #{state.available.join(', ')}"
+          puts "    satisfied   - #{state.satisfied?}"
+          puts "    includeable - #{state.includeable?}"
         end
       end
     end
