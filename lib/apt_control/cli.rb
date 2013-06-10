@@ -45,7 +45,7 @@ module AptControl
       def apt_site ; ancestor(Root).apt_site ; end
       def control_file ; ancestor(Root).control_file ; end
       def build_archive ; ancestor(Root).build_archive ; end
-      def notifier ; ancestor(Root).notify ; end
+      def notifier ; ancestor(Root).notifier ; end
       def notify(msg) ; ancestor(Root).notify(msg) ; end
       def validate_config! ; ancestor(Root).validate_config! ; end
       def logger ; ancestor(Root).logger ; end
@@ -165,7 +165,7 @@ YAML file containing a single hash of key value/pairs for each option.
       end
 
       def notifier
-        @notify ||= Notify::Jabber.new(:jid => config[:jabber_id], :logger => logger,
+        @notify ||= Jabber.new(:jid => config[:jabber_id], :logger => logger,
           :password => config[:jabber_password], :room_jid => config[:jabber_chatroom_id])
       end
 
@@ -201,7 +201,12 @@ YAML file containing a single hash of key value/pairs for each option.
       def notify(message)
         logger.info("notify: #{message}")
         return unless config[:jabber_enabled].to_s == 'true'
-        notifier.message(message)
+        begin
+          notifier.send_message(message)
+        rescue => e
+          logger.error("Unable to send notification to jabber: #{e}")
+          logger.error(e)
+        end
       end
     end
   end

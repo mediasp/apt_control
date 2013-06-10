@@ -60,6 +60,8 @@ has the usual set of options for running as an init.d style daemon.
         watch_build_archive_in_new_thread
       ]
 
+      notify("apt_control watcher is up, waiting for changes to control file and new packages...")
+
       # these should never exit, so stop main thread exiting by joining to them
       threads.each(&:join)
     end

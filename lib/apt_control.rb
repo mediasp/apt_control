@@ -6,7 +6,7 @@ require 'logger'
 module AptControl
 
   require 'apt_control/exec'
-  require 'apt_control/notify'
+  require 'apt_control/jabber'
   require 'apt_control/control_file'
   require 'apt_control/apt_site'
   require 'apt_control/build_archive'

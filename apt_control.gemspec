@@ -19,9 +19,10 @@ Gem::Specification.new do |s|
   s.add_dependency "inifile"
   s.add_dependency "xmpp4r"
   s.add_dependency "listen", "~> 1.1"
+  s.add_dependency "rb-inotify", "~> 0.9"
 
-  s.add_development_dependency "rspec"
   s.add_development_dependency "minitest"
+  s.add_development_dependency "mocha"
 
   s.files        = Dir.glob("{bin,lib}/**/*")
   s.executables  = ['apt_control']
