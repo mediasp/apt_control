@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.add_dependency "climate"
   s.add_dependency "inifile"
   s.add_dependency "xmpp4r"
-  s.add_dependency "listen", "~> 1.1"
+  s.add_dependency "listen", "~> 1.2"
   s.add_dependency "rb-inotify", "~> 0.9"
   s.add_dependency "celluloid", "~> 0.14.0"
 
