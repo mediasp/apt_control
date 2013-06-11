@@ -10,14 +10,14 @@ module AptControl
     end
 
     def perform_for_all(package_states, &visitor)
-      package_states.each do |state|
+      package_states.map do |state|
         next unless state.includeable?
 
         version = state.includeable_to.max
         perform = (block_given? && yield(state, version)) || true
 
-        perform_for(state, version) if perform
-      end
+        perform_for(state, version) && [state, version] if perform
+      end.compact
     end
 
     def perform_for(state, version, noop=false)

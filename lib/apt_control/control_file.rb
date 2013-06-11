@@ -38,6 +38,17 @@ module AptControl
       end
     end
 
+    def reload!
+      inifile = IniFile.load(@path)
+      distributions = parse!(inifile)
+
+      @watch_mutex.synchronize do
+        @distributions = distributions
+      end
+
+      @logger.info("...rebuilt")
+    end
+
     # Watch the control file for changes, rebuilding
     # internal data structures when it does
     def watch(fs_listener_factory, &block)
@@ -48,13 +59,7 @@ module AptControl
       fs_listener_factory.new(dir, /#{Regexp.quote(fname)}/) do |modified, added, removed|
         begin
           @logger.info("Change to control file detected...")
-          inifile = IniFile.load(path)
-          distributions = parse!(inifile)
-
-          @watch_mutex.synchronize do
-            @distributions = distributions
-          end
-          @logger.info("...rebuilt")
+          reload!
           yield if block_given?
         rescue => e
           @logger.error("Error reloading changes: #{e}")

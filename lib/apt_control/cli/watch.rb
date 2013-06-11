@@ -80,6 +80,8 @@ has the usual set of options for running as an init.d style daemon.
             jabber:         jabber.actor,
             command_start:  jabber.room_nick,
             package_states: package_states,
+            includer:       new_includer,
+            control_file:   control_file,
             logger:         logger)
 
           jabber.add_room_listener(bot.actor)

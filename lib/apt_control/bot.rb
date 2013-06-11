@@ -24,6 +24,8 @@ module AptControl
       @package_states = dependencies.fetch(:package_states)
       @logger         = dependencies.fetch(:logger)
       @command_start  = dependencies.fetch(:command_start)
+      @includer       = dependencies.fetch(:includer)
+      @control_file   = dependencies.fetch(:control_file)
 
       @bot_pattern = /#{Regexp.escape(@command_start)}\: ([^ ]+)(?: (.+))?/
       @logger.info("looking for messages starting with #{@command_start}")
@@ -53,7 +55,7 @@ module AptControl
 
     def print_help(message)
       send_message(message)
-      send_message("Send commands with '#{@jabber.room_nick}: COMMAND [ARGS...]'")
+      send_message("Send commands with '#{@command_start} COMMAND [ARGS...]'")
       send_message("Available commands: #{self.class.handlers.join(' ')}")
     end
 
@@ -70,6 +72,20 @@ module AptControl
       end.compact
 
       send_message("no packages found: distribution => #{dist.inspect}, package_name => #{package_name.inspect} ") if found.empty?
+    end
+
+    def handle_include(args)
+      performed = @includer.perform_for_all(@package_states) do |state, version|
+        send_message("#{state.dist.name} #{state.package_name} #{state.included} => #{version}")
+        true
+      end
+
+      send_message("no packages were included") if performed.empty?
+    end
+
+    def handle_reload(args)
+      @control_file.reload!
+      send_message("control file reloaded")
     end
   end
 end
