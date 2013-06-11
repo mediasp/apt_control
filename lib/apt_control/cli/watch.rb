@@ -54,6 +54,12 @@ has the usual set of options for running as an init.d style daemon.
       at_exit { File.delete(pidfile) if File.exists?(pidfile) } if pidfile
     end
 
+    # for the watch command, we use the actor version of the apt_site so that
+    # reprepro operations are sequential
+    def new_includer
+      super(apt_site: apt_site.actor)
+    end
+
     def start_watching
       threads = [
         watch_control_in_new_thread,
@@ -70,8 +76,12 @@ has the usual set of options for running as an init.d style daemon.
     def start_aptbot_in_new_thread
       Thread.new do
         begin
-          bot = AptControl::Bot.new(jabber: jabber,
-            package_states: package_states, logger: logger)
+          bot = AptControl::Bot.new(
+            jabber:         jabber.actor,
+            command_start:  jabber.room_nick,
+            package_states: package_states,
+            logger:         logger)
+
           jabber.add_room_listener(bot.actor)
         rescue => e
           puts "got an error #{e}"
@@ -88,7 +98,7 @@ has the usual set of options for running as an init.d style daemon.
             notify "Control file reloaded"
             # FIXME need to do some kind of locking or actor style dev for this
             # as it looks like there could be some concurrency bugs lurking
-            includer.perform_for_all(package_states) do |package_state, new_version|
+            new_includer.perform_for_all(package_states) do |package_state, new_version|
               notify("included package #{package_state.package_name}-#{new_version} in #{package_state.dist.name}")
               true
             end
@@ -119,7 +129,7 @@ has the usual set of options for running as an init.d style daemon.
       updated = matched_states.map do |state|
         if state.includeable_to.max == new_version
           begin
-            includer.perform_for(state, new_version, options[:noop])
+            new_includer.perform_for(state, new_version, options[:noop])
             notify("included package #{package.name}-#{new_version} in #{state.dist.name}")
             state.dist.name
           rescue => e

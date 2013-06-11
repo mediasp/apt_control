@@ -2,6 +2,9 @@ module AptControl
   # represents the reprepro apt site that we query and include packages in to
   class AptSite
     include Exec::Helpers
+    include Actors::Proxied
+    proxy :include!
+    proxy :included_version
 
     def initialize(apt_site_dir, logger)
       @apt_site_dir = apt_site_dir

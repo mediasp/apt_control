@@ -3,6 +3,7 @@ module AptControl
   # Wraps the common functionality involved in including the latest includeable
   # package in an apt site
   class Includer
+
     def initialize(apt_site, build_archive)
       @apt_site = apt_site
       @build_archive = build_archive

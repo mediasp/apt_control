@@ -16,13 +16,17 @@ module AptControl
 
     self.extend(ClassMethods)
 
+    include Actors::Proxied
+    proxy :on_message
+
     def initialize(dependencies)
       @jabber         = dependencies.fetch(:jabber)
       @package_states = dependencies.fetch(:package_states)
       @logger         = dependencies.fetch(:logger)
+      @command_start  = dependencies.fetch(:command_start)
 
-      @bot_pattern = /#{Regexp.escape(@jabber.room_nick)}\: ([^ ]+)(?: (.+))?/
-      @logger.info("looking for messages addressed to #{@jabber.room_nick}")
+      @bot_pattern = /#{Regexp.escape(@command_start)}\: ([^ ]+)(?: (.+))?/
+      @logger.info("looking for messages starting with #{@command_start}")
       @logger.debug("  match pattern: #{@bot_pattern}")
     end
 
@@ -66,24 +70,6 @@ module AptControl
       end.compact
 
       send_message("no packages found: distribution => #{dist.inspect}, package_name => #{package_name.inspect} ") if found.empty?
-    end
-
-    def actor
-      @actor ||= Actor.new(self)
-    end
-  end
-
-  # we wrap the bot so that only the public interface is proxied to the actor,
-  # and at the moment I can't be arsed to figure out the celluloid magic
-  class Bot::Actor
-    include Celluloid
-
-    def initialize(bot)
-      @bot = bot
-    end
-
-    def on_message(text)
-      @bot.on_message(text)
     end
   end
 end

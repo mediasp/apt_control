@@ -7,6 +7,7 @@ require 'celluloid'
 module AptControl
 
   require 'apt_control/exec'
+  require 'apt_control/actors'
   require 'apt_control/jabber'
   require 'apt_control/bot'
   require 'apt_control/control_file'

@@ -67,6 +67,9 @@ module AptControl
       @room_listeners << listener
     end
 
+    include Actors::Proxied
+    proxy :send_message
+
     private
 
     def attempt_reconnect(&block)
@@ -129,9 +132,6 @@ module AptControl
       end
     end
 
-    def actor
-      @actor ||= Jabber::Actor.new(self)
-    end
 
     # Thank you to http://rubyforge.org/projects/nestegg for the pattern
     class Error < StandardError
@@ -158,15 +158,6 @@ module AptControl
     class SendError < Error ; end
   end
 
-  class Jabber::Actor
-    include Celluloid
 
-    def initialize(jabber)
-      @jabber = jabber
-    end
 
-    def send_message(message)
-      @jabber.send_message(message)
-    end
-  end
 end
