@@ -10,7 +10,7 @@ that the control file will allow"""
     def run
       validate_config!
 
-      includer.perform_for_all(package_states) do |state, version|
+      new_includer.perform_for_all(package_states) do |state, version|
         if options[:noop]
           puts "#{state.dist.name} #{state.package_name} #{state.included} => #{version}"
           false

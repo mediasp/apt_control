@@ -41,7 +41,6 @@ module AptControl
     module Common
       # FIXME tidy up with some meta magic
       def package_states ; ancestor(Root).package_states ; end
-      def includer ; ancestor(Root).includer ; end
       def new_includer(options={}) ; ancestor(Root).new_includer(options) ; end
       def apt_site ; ancestor(Root).apt_site ; end
       def control_file ; ancestor(Root).control_file ; end
@@ -174,10 +173,6 @@ YAML file containing a single hash of key value/pairs for each option.
 
       def jabber_enabled?
         config[:jabber_enabled].to_s == 'true'
-      end
-
-      def includer
-        @includer ||= Includer.new(apt_site, build_archive)
       end
 
       def new_includer(options={})

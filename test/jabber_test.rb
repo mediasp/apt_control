@@ -161,7 +161,8 @@ describe 'AptControl::Jabber' do
   def default_jabber_options
     {
       defer_connect: true,
-      logger: Logger.new(stringio)
+      logger: Logger.new(stringio),
+      enabled: true
     }
   end
 
