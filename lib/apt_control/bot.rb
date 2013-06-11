@@ -27,7 +27,6 @@ module AptControl
     end
 
     def on_message(text)
-      puts "got some text: #{text}"
       return unless match = @bot_pattern.match(text)
 
       command, args = [match[1], match[2]]
@@ -69,5 +68,22 @@ module AptControl
       send_message("no packages found: distribution => #{dist.inspect}, package_name => #{package_name.inspect} ") if found.empty?
     end
 
+    def actor
+      @actor ||= Actor.new(self)
+    end
+  end
+
+  # we wrap the bot so that only the public interface is proxied to the actor,
+  # and at the moment I can't be arsed to figure out the celluloid magic
+  class Bot::Actor
+    include Celluloid
+
+    def initialize(bot)
+      @bot = bot
+    end
+
+    def on_message(text)
+      @bot.on_message(text)
+    end
   end
 end

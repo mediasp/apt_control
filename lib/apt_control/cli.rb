@@ -46,6 +46,7 @@ module AptControl
       def control_file ; ancestor(Root).control_file ; end
       def build_archive ; ancestor(Root).build_archive ; end
       def jabber ; ancestor(Root).jabber ; end
+      def jabber_enabled? ; ancestor(Root).jabber_enabled? ; end
       def notify(msg) ; ancestor(Root).notify(msg) ; end
       def validate_config! ; ancestor(Root).validate_config! ; end
       def logger ; ancestor(Root).logger ; end
@@ -165,8 +166,13 @@ YAML file containing a single hash of key value/pairs for each option.
       end
 
       def jabber
-        @jabber ||= Jabber::Actor.new(:jid => config[:jabber_id], :logger => logger,
-          :password => config[:jabber_password], :room_jid => config[:jabber_chatroom_id])
+        @jabber ||= Jabber.new(:jid => config[:jabber_id], :logger => logger,
+          :password => config[:jabber_password], :room_jid => config[:jabber_chatroom_id],
+          :enabled => jabber_enabled?)
+      end
+
+      def jabber_enabled?
+        config[:jabber_enabled].to_s == 'true'
       end
 
       def includer
@@ -202,9 +208,8 @@ YAML file containing a single hash of key value/pairs for each option.
 
       def notify(message)
         logger.info("notify: #{message}")
-        return unless config[:jabber_enabled].to_s == 'true'
         begin
-          jabber.async.send_message(message)
+          jabber.actor.async.send_message(message)
         rescue => e
           logger.error("Unable to send notification to jabber: #{e}")
           logger.error(e)

@@ -8,22 +8,26 @@ module AptControl
     include ::Jabber
 
     def initialize(options)
+      @enabled  = options[:enabled]
       @jid      = options[:jid]
       @password = options[:password]
       @room_jid = options[:room_jid]
       @logger   = options[:logger]
 
-      @room_nick = @room_jid && @room_jid.split('/').last
-      @room_listeners = []
+      if @enabled
+        @room_nick = @room_jid && @room_jid.split('/').last
+        @room_listeners = []
 
-      swallow_errors { connect! } unless options[:defer_connect]
+        swallow_errors { connect! } unless options[:defer_connect]
+      end
     end
 
-    def room_nick
-      @room_nick
-    end
+    def enabled?  ; @enabled   ; end
+    def room_nick ; @room_nick ; end
 
     def send_message(msg)
+      return unless enabled?
+
       if not_connected?
         connect!
       end
@@ -113,12 +117,20 @@ module AptControl
     def notify_room_listeners(text)
       @room_listeners.each do |l|
         begin
-          l.on_message(text)
+          if l.is_a? Celluloid
+            l.async.on_message(text)
+          else
+            l.on_message(text)
+          end
         rescue => e
           @logger.error("listener #{l} raised error: #{e}")
           @logger.error(e)
         end
       end
+    end
+
+    def actor
+      @actor ||= Jabber::Actor.new(self)
     end
 
     # Thank you to http://rubyforge.org/projects/nestegg for the pattern
@@ -146,7 +158,15 @@ module AptControl
     class SendError < Error ; end
   end
 
-  class Jabber::Actor < Jabber
+  class Jabber::Actor
     include Celluloid
+
+    def initialize(jabber)
+      @jabber = jabber
+    end
+
+    def send_message(message)
+      @jabber.send_message(message)
+    end
   end
 end

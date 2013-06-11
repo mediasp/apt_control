@@ -58,8 +58,8 @@ has the usual set of options for running as an init.d style daemon.
       threads = [
         watch_control_in_new_thread,
         watch_build_archive_in_new_thread,
-        start_aptbot_in_new_thread
-      ]
+        jabber_enabled? && start_aptbot_in_new_thread
+      ].compact
 
       notify("apt_control watcher is up, waiting for changes to control file and new packages...")
 
@@ -72,7 +72,7 @@ has the usual set of options for running as an init.d style daemon.
         begin
           bot = AptControl::Bot.new(jabber: jabber,
             package_states: package_states, logger: logger)
-          jabber.add_room_listener(bot)
+          jabber.add_room_listener(bot.actor)
         rescue => e
           puts "got an error #{e}"
           puts e.backtrace
