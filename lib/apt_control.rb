@@ -2,6 +2,7 @@
 require 'inifile'
 require 'listen'
 require 'logger'
+require 'celluloid'
 
 module AptControl
 

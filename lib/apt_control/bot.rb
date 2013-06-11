@@ -19,8 +19,11 @@ module AptControl
     def initialize(dependencies)
       @jabber         = dependencies.fetch(:jabber)
       @package_states = dependencies.fetch(:package_states)
+      @logger         = dependencies.fetch(:logger)
 
       @bot_pattern = /#{Regexp.escape(@jabber.room_nick)}\: ([^ ]+)(?: (.+))?/
+      @logger.info("looking for messages addressed to #{@jabber.room_nick}")
+      @logger.debug("  match pattern: #{@bot_pattern}")
     end
 
     def on_message(text)
@@ -33,10 +36,16 @@ module AptControl
         return print_help("unknown command '#{command}'")
 
       args = args.nil? ? [] : args.split(' ')
-      self.send("handle_#{command}", args)
+      begin
+        self.send("handle_#{command}", args)
+      rescue => e
+        @logger.error("error handling #{command}")
+        @logger.error(e)
+      end
     end
 
     def send_message(msg)
+      @jabber.async.send_message(msg)
     end
 
     def print_help(message)

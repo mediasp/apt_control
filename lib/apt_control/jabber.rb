@@ -145,4 +145,8 @@ module AptControl
     class ConnectionError < Error ; end
     class SendError < Error ; end
   end
+
+  class Jabber::Actor < Jabber
+    include Celluloid
+  end
 end

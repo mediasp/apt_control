@@ -70,7 +70,8 @@ has the usual set of options for running as an init.d style daemon.
     def start_aptbot_in_new_thread
       Thread.new do
         begin
-          bot = AptControl::Bot.new(jabber: jabber, package_states: package_states)
+          bot = AptControl::Bot.new(jabber: jabber,
+            package_states: package_states, logger: logger)
           jabber.add_room_listener(bot)
         rescue => e
           puts "got an error #{e}"

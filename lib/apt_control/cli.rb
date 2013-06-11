@@ -165,7 +165,7 @@ YAML file containing a single hash of key value/pairs for each option.
       end
 
       def jabber
-        @jabber ||= Jabber.new(:jid => config[:jabber_id], :logger => logger,
+        @jabber ||= Jabber::Actor.new(:jid => config[:jabber_id], :logger => logger,
           :password => config[:jabber_password], :room_jid => config[:jabber_chatroom_id])
       end
 
@@ -204,7 +204,7 @@ YAML file containing a single hash of key value/pairs for each option.
         logger.info("notify: #{message}")
         return unless config[:jabber_enabled].to_s == 'true'
         begin
-          jabber.send_message(message)
+          jabber.async.send_message(message)
         rescue => e
           logger.error("Unable to send notification to jabber: #{e}")
           logger.error(e)
