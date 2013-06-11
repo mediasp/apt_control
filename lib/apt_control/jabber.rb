@@ -13,7 +13,14 @@ module AptControl
       @room_jid = options[:room_jid]
       @logger   = options[:logger]
 
+      @room_nick = @room_jid && @room_jid.split('/').last
+      @room_listeners = []
+
       swallow_errors { connect! } unless options[:defer_connect]
+    end
+
+    def room_nick
+      @room_nick
     end
 
     def send_message(msg)
@@ -52,6 +59,10 @@ module AptControl
 
     def not_connected? ; ! connected? ; end
 
+    def add_room_listener(listener)
+      @room_listeners << listener
+    end
+
     private
 
     def attempt_reconnect(&block)
@@ -85,8 +96,28 @@ module AptControl
         @muc = Jabber::MUC::SimpleMUCClient.new(@client)
         @muc.join(JID.new(@room_jid))
         @logger.info("joined room #{@room_jid}")
+        setup_muc_callbacks
       rescue JabberError => e
         raise ConnectionError.new("error joining room", e)
+      end
+    end
+
+    def setup_muc_callbacks
+      @muc.on_message do |time, nick, text|
+        next if time # skip history
+        next if @room_nick == nick
+        notify_room_listeners(text)
+      end
+    end
+
+    def notify_room_listeners(text)
+      @room_listeners.each do |l|
+        begin
+          l.on_message(text)
+        rescue => e
+          @logger.error("listener #{l} raised error: #{e}")
+          @logger.error(e)
+        end
       end
     end
 

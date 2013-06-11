@@ -55,5 +55,17 @@ module AptControl
     def includeable_to
       rule.includeable_to(available)
     end
+
+    def status_line
+      [
+        dist.name,
+        package_name,
+        "(#{rule.restriction} #{rule.version})",
+        "#{includeable? ? 'I' : '.'}#{satisfied? ? 'S' : '.'}",
+        "included=#{included || '<none>'}",
+        "available=#{available? ? available.join(', ') : '<none>'} "
+      ].join(' ')
+    end
+
   end
 end

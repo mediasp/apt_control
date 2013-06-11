@@ -11,15 +11,7 @@ module AptControl::CLI
 
       if options[:machine_readable]
         package_states.each do |state|
-          fields = [
-            state.dist.name,
-            state.package_name,
-            "(#{state.rule.restriction} #{state.rule.version})",
-            "#{state.includeable? ? 'I' : '.'}#{state.satisfied? ? 'S' : '.'}",
-            "included=#{state.included || '<none>'}",
-            "available=#{state.available? ? state.available.join(', ') : '<none>'} "
-          ]
-          puts fields.join(' ')
+          puts state.status_line
         end
       else
         last_dist = nil
