@@ -139,6 +139,8 @@ YAML file containing a single hash of key value/pairs for each option.
             config[key] or raise Climate::ExitException, "Error: you must supply all jabber options if jabber is enabled"
           end
         end
+
+        Celluloid.logger = logger
       end
 
       def logger

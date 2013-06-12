@@ -4,6 +4,9 @@ require 'listen'
 require 'logger'
 require 'celluloid'
 
+# silence celluloid until we have our own logger
+Celluloid.logger = nil
+
 module AptControl
 
   require 'apt_control/exec'
