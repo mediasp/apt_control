@@ -1,8 +1,14 @@
 # apt-control
 
-Automatically move debian packages in to your apt repository based on
-gemspec-esque version specifications.  Meant to be used as part of an automated
-build and deployment system (i.e. continuous deployment).
+Features:
+
+ - Automatically move debian packages in to your apt repository based on
+   gemspec-esque version specifications.
+
+ - Use as part of an automated build and deployment system (i.e. continuous
+   deployment) to get your debs in to your apt site
+
+ - Control and query using a jabber bot
 
 Requirements:
  - reprepro based apt site
@@ -50,11 +56,50 @@ production
 ... # And so on
 ```
 
-Now get apt_control to watch your build directory for new packages to arrive,
-moving them in to apt as they do, according to the rules you've set up.  This
-will then notify your jabber chat room with any operations it performs.
-
-`apt_control watch --daemonize`
-
 There is more documentation included in the CLI.  Run `apt_control -h` to get
 more help.
+
+## watch daemon
+
+`apt_control` comes with a watch command that will watch your build directory for
+new packages to arrive, and your control file for any changes made to it.  It
+will then perform any include operations that it can according to any new builds
+or changed rules.
+
+## jabber bot
+
+The watch daemon can connect to your jabber server, where you can
+communicate with the bot and get it to do stuff, like reload the control file,
+ask for the status.
+
+The bot commands mostly correspond to the cli commands.
+
+## operations
+
+### include
+
+The include operation will include the highest possible package for each package
+rule that you have set up in your apt repository.
+
+ - CLI: `apt_control include`
+ - aptbot: `aptbot: include`
+
+## set
+
+Set will set a rule for a particular package, for instance, set the rule for
+the `api` package in `production` to be '~> 1.4.1'
+
+ - CLI: `apt_control set production api '~> 1.4.1'`
+ - aptbot: `aptbot: set production api '~> 1.4.1'`
+
+## promote
+
+The promote rule is a fancy set that takes the currently included package
+from one repository and updates your package rule for the destination repository
+to want to include exactly that package.  This is mostly useful for moving a
+package from staging in to production.
+
+ - CLI: `apt_control promote staging production api`
+ - aptbot: `aptbot: promote staging production api`
+
+
