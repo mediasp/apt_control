@@ -97,11 +97,12 @@ module CLIHelper
       # there is some problem with inotify under tests - the events don't seem
       # to be fired - maybe because the (original) parent process made the
       # changes?
-      disable_inotify:   true
+      disable_inotify:   true,
+      log_file:          '/dev/null'
     }.map {|k,v| "-o #{k}=#{v}" }.join(' ')
     begin
       cmd = "ruby -rrubygems -Ilib bin/apt_control #{opts} " + cmd
-      @exec.exec(cmd)
+      @exec.exec(cmd, options)
     rescue AptControl::Exec::UnexpectedExitStatus => e
 
       fail(e.message + "\n" + e.stderr)
