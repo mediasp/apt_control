@@ -14,7 +14,7 @@ Requirements:
  - reprepro based apt site
  - directory full of builds - the build archive
  - ruby1.9 and rubygems
- - jabber server (optional, for notifications)
+ - jabber server (optional, for notifications and bot)
 
 # install
 
@@ -84,7 +84,7 @@ rule that you have set up in your apt repository.
  - CLI: `apt_control include`
  - aptbot: `aptbot: include`
 
-## set
+### set
 
 Set will set a rule for a particular package, for instance, set the rule for
 the `api` package in `production` to be '~> 1.4.1'
@@ -92,7 +92,7 @@ the `api` package in `production` to be '~> 1.4.1'
  - CLI: `apt_control set production api '~> 1.4.1'`
  - aptbot: `aptbot: set production api '~> 1.4.1'`
 
-## promote
+### promote
 
 The promote rule is a fancy set that takes the currently included package
 from one repository and updates your package rule for the destination repository
