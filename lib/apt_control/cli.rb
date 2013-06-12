@@ -72,7 +72,7 @@ module AptControl
 
       DEFAULT_CONFIG_FILE_LOCATION = '/etc/apt_control/config.yaml'
 
-      config :log_file, "File to send log output to, defaults to stdout", :required => false
+      config :log_file, "File to send log output to, defaults to /dev/null", :required => false
       config :apt_site_dir, "Directory containing apt files"
       config :control_file, "Path to control file containing inclusion rules"
       config :build_archive_dir, "Directory containing debian build files"
@@ -144,7 +144,8 @@ YAML file containing a single hash of key value/pairs for each option.
       end
 
       def logger
-        @logger ||= Logger.new(config[:log_file] || STDOUT).tap do |logger|
+        log_file = config[:log_file] || '/dev/null'
+        @logger ||= Logger.new(log_file == 'STDOUT' ? STDOUT : log_file).tap do |logger|
           logger.level = Logger::DEBUG
         end
       end
