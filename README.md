@@ -13,7 +13,7 @@ Features:
 Requirements:
  - reprepro based apt site
  - directory full of builds - the build archive
- - ruby1.8 and rubygems
+ - ruby1.9 and rubygems
  - jabber server (optional, for notifications)
 
 # install
