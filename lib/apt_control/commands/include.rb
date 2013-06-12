@@ -1,15 +1,12 @@
 module AptControl
+  class Commands::Include
 
-  # Wraps the common functionality involved in including the latest includeable
-  # package in an apt site
-  class Includer
-
-    def initialize(apt_site, build_archive)
-      @apt_site = apt_site
-      @build_archive = build_archive
+    def initialize(dependencies)
+      @apt_site      = dependencies.fetch(:apt_site)
+      @build_archive = dependencies.fetch(:build_archive)
     end
 
-    def perform_for_all(package_states, &visitor)
+    def run(package_states, &visitor)
       package_states.map do |state|
         next unless state.includeable?
 

@@ -56,7 +56,7 @@ has the usual set of options for running as an init.d style daemon.
 
     # for the watch command, we use the actor version of the apt_site so that
     # reprepro operations are sequential
-    def new_includer
+    def new_include_cmd
       super(apt_site: apt_site.actor)
     end
 
@@ -80,7 +80,7 @@ has the usual set of options for running as an init.d style daemon.
             jabber:         jabber.actor,
             command_start:  jabber.room_nick,
             package_states: package_states,
-            includer:       new_includer,
+            include_cmd:    new_include_cmd,
             control_file:   control_file,
             logger:         logger)
 
@@ -100,7 +100,7 @@ has the usual set of options for running as an init.d style daemon.
             notify "Control file reloaded"
             # FIXME need to do some kind of locking or actor style dev for this
             # as it looks like there could be some concurrency bugs lurking
-            new_includer.perform_for_all(package_states) do |package_state, new_version|
+            new_include_cmd.run(package_states) do |package_state, new_version|
               notify("included package #{package_state.package_name}-#{new_version} in #{package_state.dist.name}")
               true
             end
@@ -131,7 +131,7 @@ has the usual set of options for running as an init.d style daemon.
       updated = matched_states.map do |state|
         if state.includeable_to.max == new_version
           begin
-            new_includer.perform_for(state, new_version, options[:noop])
+            new_include_cmd.perform_for(state, new_version, options[:noop])
             notify("included package #{package.name}-#{new_version} in #{state.dist.name}")
             state.dist.name
           rescue => e

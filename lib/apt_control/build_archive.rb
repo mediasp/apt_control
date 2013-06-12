@@ -50,6 +50,7 @@ module AptControl
             rescue => e
               @logger.error("Couldn't parse version string: #{s}")
               @logger.error(e)
+              nil
             end
           }.compact
           Package.new(name, versions)
@@ -102,6 +103,7 @@ module AptControl
       end
 
       def add_version(version)
+        raise unless version.is_a?(AptControl::Version)
         @versions << version
       end
 

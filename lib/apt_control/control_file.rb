@@ -4,6 +4,9 @@ module AptControl
 
   # Loads and models the contents of a control.ini file
   # see example-control.ini in root of project for an example
+  #
+  # TODO some sort of actor wrapper that provides sequential write access to
+  # the data model
   class ControlFile
 
     def initialize(path, logger)
@@ -107,6 +110,10 @@ module AptControl
 
       def initialize(name, constraint)
         @package_name = name
+        self.constraint = constraint
+      end
+
+      def constraint=(constraint)
         version = nil
         constraint.split(" ").tap do |split|
           @restriction, version = if split.size == 1
@@ -171,6 +178,7 @@ module AptControl
         @name = name
         @package_rules = rules
       end
+
       attr_reader :name
       attr_reader :package_rules
 
@@ -183,6 +191,15 @@ module AptControl
       # find a PackageRule by package name
       def [](package_name)
         package_rules.find {|rule| rule.package_name == package_name }
+      end
+
+      def []=(package_name, new_constraint)
+        existing_rule = self[package_name]
+        if existing_rule
+          existing_rule.constraint = new_constraint
+        else
+          package_rules << PackageRule.new(package_name, new_constraint)
+        end
       end
     end
   end

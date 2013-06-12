@@ -36,12 +36,14 @@ module AptControl
       require 'apt_control/cli/status'
       require 'apt_control/cli/watch'
       require 'apt_control/cli/include'
+      require 'apt_control/cli/set'
+      require 'apt_control/cli/promote'
     end
 
     module Common
       # FIXME tidy up with some meta magic
       def package_states ; ancestor(Root).package_states ; end
-      def new_includer(options={}) ; ancestor(Root).new_includer(options) ; end
+      def new_include_cmd(options={}) ; ancestor(Root).new_include_cmd(options) ; end
       def apt_site ; ancestor(Root).apt_site ; end
       def control_file ; ancestor(Root).control_file ; end
       def build_archive ; ancestor(Root).build_archive ; end
@@ -178,11 +180,11 @@ YAML file containing a single hash of key value/pairs for each option.
         config[:jabber_enabled].to_s == 'true'
       end
 
-      def new_includer(options={})
+      def new_include_cmd(options={})
         defaults = {apt_site: apt_site, build_archive: build_archive}
         options = options.merge(defaults)
 
-        Includer.new(options[:apt_site], options[:build_archive])
+        AptControl::Commands::Include.new(options)
       end
 
       class FSListenerFactory

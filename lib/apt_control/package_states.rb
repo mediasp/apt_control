@@ -17,6 +17,12 @@ module AptControl
         end
       end
     end
+
+    def find_state(dist_name, package_name)
+      find do |state|
+        state.dist.name == dist_name && state.package_name == package_name
+      end
+    end
   end
 
   # Brings together the state of a particular package in a particular

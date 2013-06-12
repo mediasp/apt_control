@@ -17,7 +17,7 @@ module AptControl
   require 'apt_control/apt_site'
   require 'apt_control/build_archive'
   require 'apt_control/package_states'
-  require 'apt_control/includer'
+  require 'apt_control/commands'
 
   class Version
     include Comparable
