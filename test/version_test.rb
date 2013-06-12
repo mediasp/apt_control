@@ -50,8 +50,8 @@ describe 'AptControl::Version' do
     assert_satisfies_exactly '1.1.0-1', '1.1'
     assert_satisfies_exactly '1.1.0-a', '1.1'
     assert_satisfies_exactly '1.1.1',   '1.1'
-    assert_satisfies_exactly '1.1.1.1',   '1.1'
-    assert_satisfies_exactly '0.1.1.1',   '0.1'
+    assert_satisfies_exactly '1.1.1-1',   '1.1'
+    assert_satisfies_exactly '0.1.1-1',   '0.1'
 
     refute_satisfies_exactly '1.1',     '1.1.1'
     refute_satisfies_exactly '1.1',     '1.1.0'

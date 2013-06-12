@@ -25,7 +25,7 @@ module AptControl
     attr_reader :major, :minor, :bugfix, :debian
 
     def self.parse(string)
-      match = /([0-9]+)(?:\.([0-9]+))?(?:\.([0-9]+))?(?:-(.+))?/.match(string)
+      match = /^([0-9]+)(?:\.([0-9]+))?(?:\.([0-9]+))?(?:-(.+))?$/.match(string)
       match && new(*(1..4).map { |i| match[i] }) or raise "could not parse #{string}"
     end
 
