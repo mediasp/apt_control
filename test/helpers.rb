@@ -113,6 +113,10 @@ module CLIHelper
     assert @exec.last_stdout.include?(line), "line:#{line}\n  not in \n#{@exec.last_stdout}"
   end
 
+  def assert_last_stderr_include(line)
+    assert @exec.last_stderr.include?(line), "line:#{line}\n  not in \n#{@exec.last_stderr}"
+  end
+
   def with_default_reprepro_config
     write_reprepro_config %Q{
 Codename: production
