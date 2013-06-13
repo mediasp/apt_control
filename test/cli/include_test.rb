@@ -38,4 +38,10 @@ describe 'apt_control include' do
 
     assert_last_stdout_include "production api (~> 0.5) .S included=0.5.1-3"
   end
+
+  it 'will not include a package if it is lower than the already included package' do
+  end
+
+  it 'will include a package if it is lower than the already included package if you specify --force' do
+  end
 end
